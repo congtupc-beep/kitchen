@@ -1,0 +1,42 @@
+[
+  {
+    "chef_id": 1,
+    "name": "Nguyễn Thành Long",
+    "role": "HEAD_CHEF",
+    "password_hash": "headchef@123",
+    "is_active": true,
+    "created_at": "2026-06-18T15:18:02.000Z"
+  },
+  {
+    "chef_id": 2,
+    "name": "Trần Minh Quân",
+    "role": "CHEF",
+    "password_hash": "chefcorp@1",
+    "is_active": true,
+    "created_at": "2026-06-18T15:18:02.000Z"
+  },
+  {
+    "chef_id": 3,
+    "name": "Lê Hồng Đức",
+    "role": "CHEF",
+    "password_hash": "chefcorp@2",
+    "is_active": true,
+    "created_at": "2026-06-18T15:18:02.000Z"
+  },
+  {
+    "chef_id": 4,
+    "name": "Phạm Hoàng Hải",
+    "role": "CHEF",
+    "password_hash": "chefcorp@3",
+    "is_active": true,
+    "created_at": "2026-06-18T15:18:02.000Z"
+  },
+  {
+    "chef_id": 5,
+    "name": "Vũ Tuyết Mai",
+    "role": "CHEF",
+    "password_hash": "chefcorp@4",
+    "is_active": true,
+    "created_at": "2026-06-18T15:18:02.000Z"
+  }
+]

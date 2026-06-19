@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ Sơ Đầu Bếp - Hệ Thống Nhà Bếp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        /* 🎨 Bổ sung style riêng biệt tối ưu cho trang thẻ hồ sơ (Profile Card) */
+        .profile-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .profile-card {
+            background-color: var(--bg-card, #ffffff);
+            border: 1px solid var(--border-color, #e0e0e0);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 450px;
+            padding: 40px 30px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .profile-avatar-wrapper {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 20px auto;
+            background: linear-gradient(135deg, #1976d2, #115293);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(25, 118, 210, 0.3);
+        }
+        .profile-avatar-wrapper i {
+            font-size: 50px;
+            color: #ffffff;
+        }
+        .chef-role-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+        }
+        .role-head-chef { background-color: #ffe0b2; color: #e65100; }
+        .role-chef { background-color: #e8f5e9; color: #2e7d32; }
+
+        .profile-info-box {
+            margin: 30px 0;
+            border-top: 1px solid var(--border-color, #e0e0e0);
+            border-bottom: 1px solid var(--border-color, #e0e0e0);
+            padding: 20px 0;
+            text-align: left;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+        .info-row:last-child { margin-bottom: 0; }
+        .info-label { color: #555555; font-weight: 500; }
+        .info-value { color: #222222; font-weight: 600; }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn-action {
+            flex: 1;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-back { background-color: #333333; color: #ffffff; border: 1px solid #444; }
+        .btn-back:hover { background-color: #444444; }
+        .btn-logout { background: linear-gradient(135deg, #d32f2f, #c62828); color: #ffffff; }
+        .btn-logout:hover { box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3); }
+    </style>
+</head>
+<body>
+
+    <div class="profile-container animate-fade-in">
+        <div class="profile-card">
+            
+            <div class="profile-avatar-wrapper">
+                <i class="fa-solid fa-user-gear" id="avatarIcon"></i>
+            </div>
+            
+            <h2 id="displayChefName">N/A</h2>
+            <div id="displayChefRole" class="chef-role-badge">Đang tải...</div>
+
+            <div class="profile-info-box">
+                <div class="info-row">
+                    <span class="info-label"><i class="fa-solid fa-id-card"></i> Mã nhân sự (ID):</span>
+                    <span class="info-value" id="infoChefId">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fa-solid fa-toggle-on"></i> Trạng thái ca:</span>
+                    <span class="info-value" id="infoStatus" style="color: #2e7d32;">Đang làm việc</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fa-regular fa-clock"></i> Thời gian vào ca:</span>
+                    <span class="info-value" id="infoCreatedAt">-</span>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <button type="button" class="btn-action btn-back" onclick="goBackDashboard()">
+                    <i class="fa-solid fa-chevron-left"></i> Quay lại
+                </button>
+                <button type="button" class="btn-action btn-logout" onclick="window.logoutChef()">
+                    <i class="fa-solid fa-power-off"></i> Rời ca (Logout)
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="/assets/js/shared/api-client.js"></script>
+    <script src="/assets/js/shared/auth.js"></script>
+    
+    <script>
+        // Biến toàn cục dự phòng chứa thông tin quyền hạn nhân sự
+        let currentChefRole = 'CHEF';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Kích hoạt lớp bảo vệ Route Guard (Chấp nhận cả hai quyền vào xem hồ sơ cá nhân)
+            const chefData = window.checkAuthGuard(['HEAD_CHEF', 'CHEF']);
+            if (!chefData) return;
+
+            currentChefRole = chefData.role;
+
+            // 2. Ánh xạ dữ liệu sạch lên các phần tử giao diện người dùng (UI)
+            document.getElementById('displayChefName').innerText = chefData.name;
+            document.getElementById('infoChefId').innerText = `#00${chefData.chef_id || chefData.id || 1}`;
+            
+            const roleBadge = document.getElementById('displayChefRole');
+            const avatarIcon = document.getElementById('avatarIcon');
+            
+            if (chefData.role === 'HEAD_CHEF') {
+                roleBadge.innerText = 'Bếp Trưởng (Head Chef)';
+                roleBadge.classList.add('role-head-chef');
+                avatarIcon.className = 'fa-solid fa-user-tie'; 
+            } else {
+                roleBadge.innerText = 'Đầu Bếp Phụ (Chef)';
+                roleBadge.classList.add('role-chef');
+                avatarIcon.className = 'fa-solid fa-mortar-pestle';
+            }
+
+            // 3. ⏱️ FIX ĐỒNG BỘ: Ưu tiên lấy mốc thời gian vào ca thực tế (login_at) từ localStorage
+            const timeSource = chefData.login_at || chefData.created_at;
+            if (timeSource) {
+                const dateObj = new Date(timeSource);
+                document.getElementById('infoCreatedAt').innerText = dateObj.toLocaleString('vi-VN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            }
+        });
+
+        /**
+         * 🔄 THUẬT TOÁN QUAY LẠI THÔNG MINH (Báo cáo chuẩn vị trí cũ)
+         */
+        function goBackDashboard() {
+            const referrer = document.referrer;
+
+            // Nếu phát hiện có trang lịch sử trước đó và không phải trang đăng nhập trống
+            if (referrer && referrer !== "" && !referrer.includes('/index.html')) {
+                window.location.href = referrer; // Trả người dùng về đúng trang họ vừa click xem hồ sơ
+            } else {
+                // Hệ thống dự phòng (Fallback): Nếu mất dấu vết lịch sử, tự động điều phối theo phân quyền
+                if (currentChefRole === 'HEAD_CHEF') {
+                    window.location.href = '/headchef/dashboard.html';
+                } else {
+                    window.location.href = '/chef/dashboard.html';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
