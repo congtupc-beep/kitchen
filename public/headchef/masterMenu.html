@@ -1,0 +1,59 @@
+<div class="dish-card">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0;">Danh sách món ăn</h3>
+        <button class="btn-action" onclick="openAddModal()" style="background:var(--primary-blue); color:#fff;">+ Thêm món mới</button>
+    </div>
+
+    <table class="dish-table">
+        <thead>
+            <tr>
+                <th>Tên Món</th>
+                <th>Danh Mục</th>
+                <th>Giá (VNĐ)</th>
+                <th>Trạng Thái</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody id="dishListBody">
+        </tbody>
+    </table>
+    <div id="loading" style="display:none; text-align:center; padding:20px;">Đang tải dữ liệu...</div>
+</div>
+
+<div id="dishModal" class="modal">
+    </div>
+
+<script>
+    // Hàm này chạy ngay sau khi nội dung được inject vào dashboard
+    async function loadDishes() {
+        const listBody = document.getElementById('dishListBody');
+        const loading = document.getElementById('loading');
+        if(loading) loading.style.display = 'block';
+
+        try {
+            const response = await fetch('/api/dishes');
+            const data = await response.json();
+            
+            if(listBody) {
+                listBody.innerHTML = data.map(dish => `
+                    <tr>
+                        <td><strong>${dish.name}</strong><br><small>${dish.description}</small></td>
+                        <td>${dish.category}</td>
+                        <td>${dish.price.toLocaleString('vi-VN')}</td>
+                        <td><span class="badge-active">${dish.is_active ? 'Đang bán' : 'Tạm ẩn'}</span></td>
+                        <td>
+                            <button onclick="openEditModal(${JSON.stringify(dish).replace(/"/g, '&quot;')})">Sửa</button>
+                            <button onclick="deleteDish(${dish.dish_id})" style="color:red;">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } catch (err) {
+            console.error("Lỗi tải món:", err);
+        } finally {
+            if(loading) loading.style.display = 'none';
+        }
+    }
+
+    loadDishes();
+</script>

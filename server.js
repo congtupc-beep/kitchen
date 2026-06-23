@@ -40,6 +40,7 @@ poolPromise
 // =========================================================================
 const authRoutes = require('./src/api/routes/auth.routes');
 app.use('/api/auth', authRoutes);
+app.use('/api/dishes', require('./src/api/routes/masterMenu.routes'));
 
 // Các route khác sẽ thêm sau
 // app.use('/api/master-menu', require('./src/api/routes/masterMenu.routes'));
