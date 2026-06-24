@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống KDS - Theo dõi đơn hàng</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .container { padding: 24px; font-family: 'Roboto', sans-serif; background-color: #F5F7FA; }
+        .order-table { width: 100%; border-collapse: collapse; background: #FFF; border-radius: 8px; overflow: hidden; }
+        .order-table th, .order-table td { padding: 12px 16px; border-bottom: 1px solid #E5E7EB; text-align: left; }
+        .order-table th { background-color: #1A6BCC; color: white; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .status-PENDING { background-color: #F59E0B; color: #FFF; }
+        .status-COOKING { background-color: #1A6BCC; color: #FFF; }
+        .status-DONE { background-color: #22C55E; color: #FFF; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Danh sách Đơn hàng Toàn hệ thống</h2>
+        <table class="order-table">
+            <thead>
+                <tr>
+                    <th>Mã Đơn</th>
+                    <th>Bàn Số</th>
+                    <th>Số Khách</th>
+                    <th>Ghi Chú</th>
+                    <th>Trạng Thái</th>
+                </tr>
+            </thead>
+            <tbody id="order-list-tbody">
+                </tbody>
+        </table>
+    </div>
+
+    <script src="assets/js/api-client.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="assets/js/order.js"></script>
+</body>
+</html>
