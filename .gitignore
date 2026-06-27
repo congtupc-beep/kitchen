@@ -1,0 +1,14 @@
+# Chặn toàn bộ thư mục thư viện nặng, tránh làm lag Git
+node_modules/
+
+# Chặn tệp cấu hình môi trường chứa mật khẩu database cá nhân
+.env
+
+# Chặn các file log hệ thống
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# Chặn thư mục kết quả test coverage
+coverage/
