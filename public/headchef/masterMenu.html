@@ -1,3 +1,32 @@
+.dish-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background-color: #ffffff;
+}
+
+/* Định dạng các ô tiêu đề (Th) */
+.dish-table th {
+    font-weight: 600;
+    color: #475569; /* Màu chữ xám đậm hiện đại */
+    border-bottom: 2px solid #e2e8f0;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+/* Định dạng các ô nội dung (Td) */
+.dish-table td {
+    border-bottom: 1px solid #e2e8f0;
+    color: #1e293b;
+    vertical-align: middle;
+}
+
+/* Hiệu ứng hover nhẹ khi di chuột qua các dòng của bảng */
+.dish-table tbody tr:hover {
+    background-color: #f1f5f9 !important; /* Đổi màu nền nhẹ khi hover */
+    transition: background-color 0.2s ease;
+}
 <div class="dish-card">
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <h3 style="margin:0;">Danh sách món ăn</h3>
