@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bếp Trưởng - Dashboard Tổng Quan</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        /* =========================================================================
+           CSS KHUNG GIAO DIỆN CAO CẤP (CHỈ CÓ SIDEBAR VÀ HEADER ĐÃ LÀM ĐẸP)
+           ========================================================================= */
+        :root {
+            --sidebar-width: 250px;
+            --navbar-height: 70px;
+            --bg-workspace: #f8fafc; /* Màu nền xám xanh dịu mắt, sang trọng */
+            --sidebar-bg: #ffffff;
+            --text-dark: #1e293b;
+            --border-light: #e2e8f0;
+            --primary-blue: #1976d2;
+            --hover-blue: #f1f5f9;
+        }
+
+        body.dashboard-layout-body {
+            background-color: var(--bg-workspace);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* 📁 1. THIẾT KẾ SIDEBAR ĐỒNG BỘ CHUẨN (image_75b665.png) */
+        .kds-sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+            z-index: 10;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.02);
+        }
+        .sidebar-brand {
+            padding: 25px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--primary-blue);
+            font-weight: 800;
+            font-size: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .sidebar-brand i { font-size: 26px; }
+        
+        .sidebar-menu-list {
+            list-style: none;
+            padding: 15px 0;
+            margin: 0;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .menu-item-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            color: #475569;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .menu-item-link:hover, .menu-item-link.active { 
+            background-color: var(--hover-blue); 
+            color: var(--primary-blue); 
+        }
+        .menu-item-link.active { 
+            font-weight: 700; 
+            border-left: 4px solid var(--primary-blue); 
+        }
+        .link-main-content { display: flex; align-items: center; gap: 12px; }
+        
+        /* Menu con (Sub-menu vẽ tay) */
+        .sub-menu-container {
+            padding: 5px 20px 10px 45px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .btn-sub-badge {
+            width: 100%;
+            padding: 8px 12px;
+            background-color: #ffffff;
+            border: 1px solid #64748b;
+            border-radius: 6px;
+            font-weight: 600;
+            color: #334155;
+            text-align: left;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
+        .btn-sub-badge:hover { 
+            background-color: var(--hover-blue);
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        /* 🖥️ 2. MAIN CONTAINER WRAPPER */
+        .kds-main-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - var(--sidebar-width));
+            height: 100vh;
+        }
+
+        /* 👑 3. THIẾT KẾ NAVBAR CAO CẤP CHUẨN (image_75adc8.png) */
+        .kds-navbar {
+            height: var(--navbar-height);
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .navbar-left h2 { margin: 0; font-size: 18px; font-weight: 700; color: #0f172a; }
+        .navbar-right { display: flex; align-items: center; gap: 20px; }
+        
+        /* Khối thông tin bo tròn viên thuốc của Bếp Trưởng */
+        .user-profile-block {
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+            padding: 6px 20px; 
+            border-radius: 30px; 
+            border: 1px solid var(--border-light);
+            background-color: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .user-profile-block:hover {
+            background-color: var(--hover-blue);
+            border-color: var(--primary-blue);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .user-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--primary-blue); object-fit: cover; }
+        .user-info-text { display: flex; flex-direction: column; text-align: left; }
+        .user-info-text .user-name { font-weight: 600; font-size: 14px; color: #0f172a; }
+        .user-info-text .user-role { font-size: 11px; color: #64748b; font-weight: 500; }
+
+        /* 🔲 4. VÙNG BODY TRỐNG TUYỆT ĐỐI DÀNH CHO THÀNH VIÊN KHÁC CODE */
+        .workspace-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body class="dashboard-layout-body">
+
+    <aside class="kds-sidebar">
+        <div>
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-utensils"></i>
+                <span>Món ngon mỗi ngày</span>
+            </div>
+            
+            <nav class="sidebar-menu-list">
+                <div class="menu-item-link active" onclick="location.href='/headchef/dashboard.html'">
+                    <div class="link-main-content"><i class="fa-solid fa-chart-line"></i> Tổng quan</div>
+                </div>
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-book-open"></i> Thực đơn gốc</div>
+                </div>
+                
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-list-check"></i> Quản lý thực đơn</div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="sub-menu-container">
+                    <button class="btn-sub-badge" onclick="location.href='/headchef/menu-daily.html'">Thực đơn hàng ngày</button>
+                </div>
+
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-kitchen-set"></i> Quản lý hàng bếp</div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="sub-menu-container">
+                    <button class="btn-sub-badge">Danh sách order</button>
+                    <button class="btn-sub-badge">Tổng hợp chế biến</button>
+                </div>
+
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-bell"></i> Thông báo</div>
+                </div>
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-gear"></i> Cài đặt</div>
+                </div>
+            </nav>
+        </div>
+    </aside>
+
+    <div class="kds-main-wrapper">
+        <header class="kds-navbar">
+            <div class="navbar-left">
+                <h2>Bàn Làm Việc Bếp Trưởng</h2>
+            </div>
+            <div class="navbar-right">
+                <div class="user-profile-block" onclick="location.href='/shared/profile.html'" title="Xem thông tin tài khoản & Rời ca">
+                    <img src="https://www.w3schools.com/howto/img_avatar.png" alt="Avatar" class="user-avatar">
+                    <div class="user-info-text">
+                        <span class="user-name" id="chefNameTxt">Đang tải...</span>
+                        <span class="user-role" id="chefRoleTxt">Head Chef</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="workspace-content">
+            
+            </main>
+    </div>
+
+    <script src="/assets/js/shared/api-client.js"></script>
+    <script src="/assets/js/shared/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentChef = window.checkAuthGuard(['HEAD_CHEF']);
+            if (currentChef) {
+                document.getElementById('chefNameTxt').innerText = currentChef.name;
+                document.getElementById('chefRoleTxt').innerText = 'Bếp Trưởng';
+            }
+        });
+    </script>
+</body>
+</html>

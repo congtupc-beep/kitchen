@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập Hệ Thống Nhà Bếp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body class="kitchen-login-body">
+
+    <div class="login-wrapper animate-fade-in">
+        <header class="login-header">
+            <div class="logo-animation">
+                <i class="fa-solid fa-fire-burner kitchen-logo-icon"></i>
+            </div>
+            <h1>HỆ THỐNG NHÀ BẾP</h1>
+            <p class="subtitle">Bấm chọn nhanh tên của bạn hoặc nhập thông tin để vào ca</p>
+        </header>
+
+        <div class="quick-chef-section">
+            <label class="section-title"><i class="fa-solid fa-user-check"></i> Chọn nhanh nhân sự:</label>
+            <div class="chef-badge-grid">
+                <button type="button" class="chef-badge head-chef" onclick="selectChef('Nguyễn Thành Long')">
+                    <span class="badge-avatar">👑</span>
+                    <span class="badge-name">T. Long</span>
+                    <small>Bếp Trưởng</small>
+                </button>
+                <button type="button" class="chef-badge" onclick="selectChef('Trần Minh Quân')">
+                    <span class="badge-avatar">👨‍🍳</span>
+                    <span class="badge-name">M. Quân</span>
+                    <small>Đầu Bếp</small>
+                </button>
+                <button type="button" class="chef-badge" onclick="selectChef('Lê Hồng Đức')">
+                    <span class="badge-avatar">👨‍🍳</span>
+                    <span class="badge-name">H. Đức</span>
+                    <small>Đầu Bếp</small>
+                </button>
+                <button type="button" class="chef-badge" onclick="selectChef('Phạm Hoàng Hải')">
+                    <span class="badge-avatar">👨‍🍳</span>
+                    <span class="badge-name">H. Hải</span>
+                    <small>Đầu Bếp</small>
+                </button>
+                <button type="button" class="chef-badge" onclick="selectChef('Vũ Tuyết Mai')">
+                    <span class="badge-avatar">👩‍🍳</span>
+                    <span class="badge-name">T. Mai</span>
+                    <small>Đầu Bếp</small>
+                </button>
+            </div>
+        </div>
+
+        <div class="divider"><span>Hoặc nhập thủ công</span></div>
+
+        <form id="loginForm" novalidate>
+            
+            <div class="form-group">
+                <label for="chefName"><i class="fa-solid fa-user"></i> Họ và Tên Đầu Bếp</label>
+                <div class="input-with-icon">
+                    <input 
+                        type="text" 
+                        id="chefName" 
+                        name="chefName"
+                        placeholder="Chọn ở trên hoặc tự nhập tên..."
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password"><i class="fa-solid fa-lock"></i> Mật Khẩu Vào Ca</label>
+                <div class="input-with-icon">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password"
+                        placeholder="••••••••"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div id="errorMessage" class="error-container" style="display: none;">
+                <i class="fa-solid fa-triangle-exclamation error-icon"></i>
+                <span id="errorText" class="error-text"></span>
+            </div>
+
+            <button type="submit" id="btnSubmit" class="btn-login-submit">
+                <span>XÁC NHẬN VÀO CA <i class="fa-solid fa-arrow-right-to-bracket"></i></span>
+            </button>
+
+        </form>
+
+        <footer class="login-footer">
+            <p><i class="fa-regular fa-clock"></i> Phiên bản Realtime 2026 • Ẩm Thực Việt</p>
+        </footer>
+    </div>
+
+    <script src="/assets/js/shared/api-client.js"></script>
+    <script src="/assets/js/shared/auth.js"></script>
+    
+    <script>
+        /**
+         * Hàm bổ trợ kích hoạt điền tên nhanh khi bấm vào thẻ Badge
+         */
+        function selectChef(fullName) {
+            const nameInput = document.getElementById('chefName');
+            const passwordInput = document.getElementById('password');
+            
+            // Điền tên vào ô input
+            nameInput.value = fullName;
+            
+            // Thêm hiệu ứng highlight cho ô input
+            nameInput.classList.add('highlight-input');
+            setTimeout(() => nameInput.classList.remove('highlight-input'), 600);
+            
+            // Tự động focus thẳng vào ô mật khẩu để người dùng gõ tiếp
+            passwordInput.focus();
+            
+            // Đồng thời xóa trạng thái active cũ của các badge khác
+            document.querySelectorAll('.chef-badge').forEach(badge => badge.classList.remove('active'));
+            // Thêm class active vào badge vừa chọn
+            event.currentTarget.classList.add('active');
+        }
+
+        // Tự động điều hướng nếu đã có phiên làm việc
+        const sessionUser = localStorage.getItem('chef_user');
+        if (sessionUser) {
+            try {
+                const chef = JSON.parse(sessionUser);
+                if (chef.role === 'HEAD_CHEF') window.location.href = '/headchef/dashboard.html';
+                else if (chef.role === 'CHEF') window.location.href = '/chef/dashboard.html';
+            } catch(e) {
+                localStorage.removeItem('chef_user');
+            }
+        }
+    </script>
+</body>
+</html>
