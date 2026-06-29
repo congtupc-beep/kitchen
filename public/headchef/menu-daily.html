@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bếp Trưởng - Quản Lý Thực Đơn Ngày</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --navbar-height: 70px;
+            --bg-workspace: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --text-dark: #1e293b;
+            --border-light: #e2e8f0;
+            --primary-blue: #1976d2;
+            --hover-blue: #f1f5f9;
+            --success-green: #22c55e;
+            --danger-red: #ef4444;
+            --warning-orange: #f59e0b;
+        }
+
+        body.dashboard-layout-body {
+            background-color: var(--bg-workspace);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Sidebar & Navbar */
+        .kds-sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+            z-index: 10;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.02);
+        }
+        .sidebar-brand {
+            padding: 25px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--primary-blue);
+            font-weight: 800;
+            font-size: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .sidebar-brand i { font-size: 26px; }
+        
+        .sidebar-menu-list {
+            list-style: none;
+            padding: 15px 0;
+            margin: 0;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .menu-item-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            color: #475569;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .menu-item-link:hover, .menu-item-link.active { 
+            background-color: var(--hover-blue); 
+            color: var(--primary-blue); 
+        }
+        .menu-item-link.active { 
+            font-weight: 700; 
+            border-left: 4px solid var(--primary-blue); 
+        }
+        .link-main-content { display: flex; align-items: center; gap: 12px; }
+        
+        .sub-menu-container {
+            padding: 5px 20px 10px 45px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .btn-sub-badge {
+            width: 100%;
+            padding: 8px 12px;
+            background-color: #ffffff;
+            border: 1px solid #64748b;
+            border-radius: 6px;
+            font-weight: 600;
+            color: #334155;
+            text-align: left;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
+        .btn-sub-badge:hover, .btn-sub-badge.active { 
+            background-color: var(--hover-blue);
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+        .btn-sub-badge.active {
+            border-color: var(--primary-blue);
+            background-color: #e0f2fe;
+            color: var(--primary-blue);
+        }
+
+        .kds-main-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - var(--sidebar-width));
+            height: 100vh;
+        }
+
+        .kds-navbar {
+            height: var(--navbar-height);
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .navbar-left h2 { margin: 0; font-size: 18px; font-weight: 700; color: #0f172a; }
+        .navbar-right { display: flex; align-items: center; gap: 20px; }
+        
+        .user-profile-block {
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+            padding: 6px 20px; 
+            border-radius: 30px; 
+            border: 1px solid var(--border-light);
+            background-color: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .user-profile-block:hover {
+            background-color: var(--hover-blue);
+            border-color: var(--primary-blue);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .user-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--primary-blue); object-fit: cover; }
+        .user-info-text { display: flex; flex-direction: column; text-align: left; }
+        .user-info-text .user-name { font-weight: 600; font-size: 14px; color: #0f172a; }
+        .user-info-text .user-role { font-size: 11px; color: #64748b; font-weight: 500; }
+
+        .workspace-content {
+            flex-grow: 1;
+            padding: 24px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        /* --- Header Section --- */
+        .page-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .page-header-info h1 {
+            text-align: left;
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+        .page-header-info p {
+            margin: 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+        .header-action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .btn-action-cancel {
+            background-color: #ffffff;
+            border: 1.5px solid var(--primary-blue);
+            color: var(--primary-blue);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-action-cancel:hover {
+            background-color: var(--hover-blue);
+        }
+        .btn-action-save {
+            background-color: var(--primary-blue);
+            border: 1.5px solid var(--primary-blue);
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(25, 118, 210, 0.15);
+        }
+        .btn-action-save:hover {
+            background-color: #1565c0;
+            border-color: #1565c0;
+            box-shadow: 0 6px 12px rgba(25, 118, 210, 0.25);
+        }
+
+        /* --- Date Picker Bar --- */
+        .date-picker-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+        }
+        .date-picker-bar input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            outline: none;
+            font-family: inherit;
+            color: #0f172a;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .date-picker-bar input:focus {
+            border-color: var(--primary-blue);
+        }
+
+        /* --- 2-Column Split Layout --- */
+        .layout-2-columns {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .column-card {
+            background-color: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.01);
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .column-title {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .count-badge {
+            background-color: var(--primary-blue);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        /* Nút phụ cột trái */
+        .left-menu-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .btn-option-pill {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-option-pill.filled {
+            background-color: var(--primary-blue);
+            color: #ffffff;
+            border: 1px solid var(--primary-blue);
+        }
+        .btn-option-pill.filled:hover {
+            background-color: #1565c0;
+        }
+        .btn-option-pill.outline {
+            background-color: #ffffff;
+            color: #16a34a;
+            border: 1px solid #16a34a;
+        }
+        .btn-option-pill.outline:hover {
+            background-color: #f0fdf4;
+        }
+
+        /* --- Filter Bar Cột Phải --- */
+        .right-filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .filter-search-container {
+            position: relative;
+            flex-grow: 1;
+            min-width: 150px;
+        }
+        .filter-search-container i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .search-input:focus {
+            border-color: var(--primary-blue);
+        }
+        .select-filter {
+            padding: 8px 10px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            background-color: #fff;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        /* --- Tables styling --- */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            min-height: 200px;
+        }
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+        .custom-table th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-light);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.03em;
+        }
+        .custom-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-light);
+            color: #334155;
+            vertical-align: middle;
+        }
+        .custom-table tbody tr:hover {
+            background-color: #fafafa;
+        }
+
+        /* Checkbox cột trái */
+        .cell-checkbox {
+            width: 24px;
+        }
+        .cell-stt {
+            width: 32px;
+            text-align: center;
+            color: #64748b;
+        }
+        .cell-price {
+            font-family: monospace;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        /* Badge trạng thái */
+        .badge-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+        }
+        .badge-status.available {
+            background-color: #dcfce7;
+            color: var(--success-green);
+        }
+        .badge-status.sold_out {
+            background-color: #fee2e2;
+            color: var(--danger-red);
+        }
+
+        /* Dropdown thao tác */
+        .select-status-inline {
+            padding: 4px 6px;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            font-size: 12px;
+            background-color: #fff;
+            outline: none;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        /* Nút hành động */
+        .btn-action-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+        .btn-action-icon.delete {
+            color: #94a3b8;
+        }
+        .btn-action-icon.delete:hover {
+            color: var(--danger-red);
+            background-color: #fee2e2;
+        }
+        .btn-action-icon.add {
+            color: var(--primary-blue);
+            background-color: #e0f2fe;
+        }
+        .btn-action-icon.add:hover {
+            background-color: #bae6fd;
+            transform: scale(1.05);
+        }
+
+        /* Placeholder */
+        .empty-placeholder {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+            padding: 60px 20px;
+        }
+        .empty-placeholder i {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: block;
+            color: #cbd5e1;
+        }
+
+        /* --- Phân trang Cột Phải --- */
+        .pagination-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 5px;
+            margin-top: 16px;
+        }
+        .btn-page {
+            background-color: #ffffff;
+            border: 1px solid var(--border-light);
+            color: #334155;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .btn-page:hover:not(.disabled):not(.active) {
+            background-color: var(--hover-blue);
+            border-color: #cbd5e1;
+        }
+        .btn-page.active {
+            background-color: #e0f2fe;
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+        .btn-page.disabled {
+            color: #cbd5e1;
+            cursor: not-allowed;
+            background-color: #f8fafc;
+        }
+
+        /* --- Alert Box Hướng dẫn / Lưu ý --- */
+        .bottom-info-cards {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+        .info-card {
+            border-radius: 10px;
+            padding: 16px 20px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .info-card.guide {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e3a8a;
+        }
+        .info-card.guide h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .info-card.guide ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .info-card.guide li {
+            margin-bottom: 6px;
+        }
+        .info-card.guide li:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-card.note {
+            background-color: #fef9c3;
+            border: 1px solid #fef08a;
+            color: #713f12;
+        }
+        .info-card.note h4 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .info-card.note p {
+            margin: 0;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.7);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid var(--border-light);
+            border-top: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* =========================================================================
+           RESPONSIVE DESIGN (MEDIA QUERIES)
+           ========================================================================= */
+        @media (max-width: 1024px) {
+            .layout-2-columns {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .bottom-info-cards {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body.dashboard-layout-body {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+            .kds-sidebar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-light);
+            }
+            .sidebar-brand {
+                padding: 15px 20px;
+            }
+            .sidebar-menu-list {
+                display: flex;
+                flex-wrap: wrap;
+                padding: 5px 10px;
+            }
+            .menu-item-link {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+            .sub-menu-container {
+                padding: 5px 10px;
+                flex-direction: row;
+            }
+            .btn-sub-badge {
+                width: auto;
+                padding: 6px 12px;
+            }
+            .kds-main-wrapper {
+                width: 100%;
+                height: auto;
+            }
+            .kds-navbar {
+                padding: 0 15px;
+                height: 60px;
+            }
+            .workspace-content {
+                padding: 15px;
+            }
+            .page-header-container {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+            .header-action-buttons {
+                justify-content: flex-end;
+            }
+            .right-filter-bar {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body class="dashboard-layout-body">
+
+    <!-- Loading screen -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <aside class="kds-sidebar">
+        <div>
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-utensils"></i>
+                <span>Món ngon mỗi ngày</span>
+            </div>
+            
+            <nav class="sidebar-menu-list">
+                <div class="menu-item-link" onclick="location.href='/headchef/dashboard.html'">
+                    <div class="link-main-content"><i class="fa-solid fa-chart-line"></i> Tổng quan</div>
+                </div>
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-book-open"></i> Thực đơn gốc</div>
+                </div>
+                
+                <div class="menu-item-link active">
+                    <div class="link-main-content"><i class="fa-solid fa-list-check"></i> Quản lý thực đơn</div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="sub-menu-container">
+                    <button class="btn-sub-badge active" onclick="location.href='/headchef/menu-daily.html'">Thực đơn hàng ngày</button>
+                </div>
+
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-kitchen-set"></i> Quản lý hàng bếp</div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="sub-menu-container">
+                    <button class="btn-sub-badge">Danh sách order</button>
+                    <button class="btn-sub-badge">Tổng hợp chế biến</button>
+                </div>
+
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-bell"></i> Thông báo</div>
+                </div>
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-gear"></i> Cài đặt</div>
+                </div>
+            </nav>
+        </div>
+    </aside>
+
+    <div class="kds-main-wrapper">
+        <header class="kds-navbar">
+            <div class="navbar-left">
+                <h2>Bàn Làm Việc Bếp Trưởng</h2>
+            </div>
+            <div class="navbar-right">
+                <div class="user-profile-block" onclick="location.href='/shared/profile.html'" title="Xem thông tin tài khoản & Rời ca">
+                    <img src="https://www.w3schools.com/howto/img_avatar.png" alt="Avatar" class="user-avatar">
+                    <div class="user-info-text">
+                        <span class="user-name" id="chefNameTxt">Đang tải...</span>
+                        <span class="user-role" id="chefRoleTxt">Head Chef</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="workspace-content">
+            <!-- Header tiêu đề và Action buttons -->
+            <div class="page-header-container">
+                <div class="page-header-info">
+                    <h1>Quản lý thực đơn hàng ngày</h1>
+                    <p>Xem, tùy chỉnh hoặc áp dụng thực đơn hôm nay.</p>
+                </div>
+                <div class="header-action-buttons">
+                    <button class="btn-action-cancel" id="btnCancelMenu">Hủy thay đổi</button>
+                    <button class="btn-action-save" id="btnSaveMenu">Lưu thực đơn</button>
+                </div>
+            </div>
+
+            <!-- Date Picker Bar -->
+            <div class="date-picker-bar">
+                <label for="menuDate"><i class="fa-regular fa-calendar-days"></i> CHỌN NGÀY ÁP DỤNG:</label>
+                <input type="date" id="menuDate">
+            </div>
+
+            <!-- 2-Column Split Layout -->
+            <div class="layout-2-columns">
+                
+                <!-- CỘT BÊN TRÁI: Thực đơn ngày hôm nay -->
+                <div class="column-card">
+                    <div class="column-header">
+                        <h3 class="column-title">Thực đơn hôm nay (Daily Menu)</h3>
+                        <span class="count-badge" id="dailyCountBadge">0 món</span>
+                    </div>
+                    
+                    <div class="left-menu-options">
+                        <button class="btn-option-pill filled" id="btnUseMasterMenu">Sử dụng master Menu</button>
+                        <button class="btn-option-pill outline" id="btnResetToLastSaved">Thiết lập thay đổi</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="custom-table" id="dailyMenuTable">
+                            <thead>
+                                <tr>
+                                    <th class="cell-checkbox"><input type="checkbox" id="selectAllDailyCheck"></th>
+                                    <th class="cell-stt">STT</th>
+                                    <th>Tên món</th>
+                                    <th>Danh mục</th>
+                                    <th>Giá (VND)</th>
+                                    <th style="width: 100px;">Trạng thái</th>
+                                    <th style="width: 100px; text-align: center;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dailyMenuTableBody">
+                                <!-- Render danh sách món ăn đã chọn -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CỘT BÊN PHẢI: Thực đơn gốc để chọn món -->
+                <div class="column-card">
+                    <div class="column-header">
+                        <h3 class="column-title">Thực đơn gốc (Master Menu)</h3>
+                        <span class="count-badge" id="masterCountBadge">0 món</span>
+                    </div>
+
+                    <!-- Filter Bar -->
+                    <div class="right-filter-bar">
+                        <div class="filter-search-container">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="searchDishInput" class="search-input" placeholder="Tìm kiếm món...">
+                        </div>
+                        <select id="filterCategorySelect" class="select-filter">
+                            <option value="">Tất cả danh mục</option>
+                            <option value="Món Khai Vị">Món Khai Vị</option>
+                            <option value="Món Chính">Món Chính</option>
+                            <option value="Canh Và Lẩu">Canh Và Lẩu</option>
+                            <option value="Tráng Miệng Và Nước">Tráng Miệng &amp; Nước</option>
+                        </select>
+                        <select id="itemsPerPageSelect" class="select-filter" style="width: auto;">
+                            <option value="5" selected>5 dòng/trang</option>
+                            <option value="10">10 dòng/trang</option>
+                            <option value="20">20 dòng/trang</option>
+                            <option value="50">50 dòng/trang</option>
+                        </select>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="custom-table" id="masterMenuTable">
+                            <thead>
+                                <tr>
+                                    <th class="cell-stt">STT</th>
+                                    <th>Tên món</th>
+                                    <th>Danh mục</th>
+                                    <th>Giá</th>
+                                    <th style="width: 70px; text-align: center;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="masterMenuTableBody">
+                                <!-- Render danh sách món gốc -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination-container" id="paginationContainer">
+                        <!-- Nút phân trang động -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Alert Info Cards ở dưới cùng -->
+            <div class="bottom-info-cards">
+                <div class="info-card guide">
+                    <h4><i class="fa-solid fa-circle-info"></i> Hướng dẫn</h4>
+                    <ul>
+                        <li>Thêm món từ thực đơn gốc bên phải sang thực đơn ngày bên trái bằng nút <i class="fa-solid fa-plus-circle" style="color:var(--primary-blue)"></i>.</li>
+                        <li>Xóa món khỏi thực đơn hôm nay bằng nút <i class="fa-solid fa-trash-can" style="color:#94a3b8"></i>.</li>
+                        <li>Cập nhật trạng thái từng món nhanh qua hộp chọn ở cột trái.</li>
+                        <li><strong>Bắt buộc</strong> bấm nút <strong>"Lưu thực đơn"</strong> ở trên cùng để lưu trữ thay đổi vĩnh viễn vào hệ thống.</li>
+                    </ul>
+                </div>
+                <div class="info-card note">
+                    <h4><i class="fa-solid fa-triangle-exclamation"></i> Lưu ý</h4>
+                    <p>Mọi thay đổi thêm, bớt món và trạng thái phục vụ chỉ có hiệu lực tạm thời ở trình duyệt của bạn. Nếu bạn đổi ngày, tải lại trang hoặc nhấn <strong>"Hủy thay đổi"</strong> mà chưa nhấn Lưu, tất cả thay đổi sẽ bị hủy bỏ.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/assets/js/shared/api-client.js"></script>
+    <script src="/assets/js/shared/auth.js"></script>
+    <script src="/headchef/dailyMenu.js?v=1.0.2"></script>
+</body>
+</html>
