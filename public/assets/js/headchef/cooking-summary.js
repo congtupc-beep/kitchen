@@ -72,6 +72,27 @@ class CookingSummaryManager {
         });
     }
 
+    formatTime(date) {
+        const parsed = this.parseDate(date);
+        if (!parsed) return '-';
+        return parsed.toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Asia/Ho_Chi_Minh'
+        });
+    }
+
+    formatTableIds(tableIds) {
+        if (!tableIds) return 'N/A';
+        return tableIds.split(',').map(id => {
+            const name = id.trim();
+            if (name.toLowerCase().startsWith('bàn')) {
+                return name;
+            }
+            return `Bàn ${name}`;
+        }).join(', ');
+    }
+
 
     updateTabState() {
         document.querySelectorAll('.status-tab').forEach(btn => btn.classList.remove('active'));
@@ -215,7 +236,11 @@ class CookingSummaryManager {
                         </div>
                         <div class="dish-tables">
                             <i class="fa-solid fa-chair"></i>
-                            Bàn: ${task.table_ids || 'N/A'}
+                            Bàn: ${this.formatTableIds(task.table_ids)}
+                        </div>
+                        <div class="dish-tables">
+                            <i class="fa-solid fa-clock"></i>
+                            Thời gian đặt: ${this.formatTime(task.created_at)}
                         </div>
                     </div>
                     <div class="dish-card-actions">

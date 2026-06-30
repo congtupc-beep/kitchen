@@ -331,6 +331,21 @@ class OrderService {
                     status: newStatus,
                     message: `Đơn hàng chuyển sang trạng thái ${newStatus}.`
                 });
+
+                if (taskIdList.length > 0) {
+                    try {
+                        const updatedTasks = await cookTaskRepo.findByTaskIdList(taskIdList);
+                        for (const task of updatedTasks) {
+                            const safeTask = (typeof task.toSafeObject === 'function') ? task.toSafeObject() : task;
+                            notificationService.emitTaskUpdated(global.io, {
+                                ...safeTask,
+                                affected_order_ids: [orderId]
+                            });
+                        }
+                    } catch (emitErr) {
+                        console.error('[Socket Warning]: Lỗi phát realtime task_updated trong updateOrderStatus:', emitErr.message);
+                    }
+                }
             }
 
             return { order_id: orderId, status: newStatus, message };
@@ -415,8 +430,25 @@ async getRecentOrders(limit = 50) {
                 await cookTaskRepo.cancelTasksByTaskIdList(taskIdList, transaction);
             }
             await transaction.commit();
-            notificationService.emitOrderCancelled(global.io, { order_id: orderId, status: constants.ORDER_STATUS.CANCELLED });
-            notificationService.emitOrderUpdated(global.io, { order_id: orderId, status: constants.ORDER_STATUS.CANCELLED, message: 'Đơn hàng vừa bị hủy.' });
+            if (global.io) {
+                notificationService.emitOrderCancelled(global.io, { order_id: orderId, status: constants.ORDER_STATUS.CANCELLED });
+                notificationService.emitOrderUpdated(global.io, { order_id: orderId, status: constants.ORDER_STATUS.CANCELLED, message: 'Đơn hàng vừa bị hủy.' });
+
+                if (taskIdList.length > 0) {
+                    try {
+                        const updatedTasks = await cookTaskRepo.findByTaskIdList(taskIdList);
+                        for (const task of updatedTasks) {
+                            const safeTask = (typeof task.toSafeObject === 'function') ? task.toSafeObject() : task;
+                            notificationService.emitTaskUpdated(global.io, {
+                                ...safeTask,
+                                affected_order_ids: [orderId]
+                            });
+                        }
+                    } catch (emitErr) {
+                        console.error('[Socket Warning]: Lỗi phát realtime task_updated trong cancelOrder:', emitErr.message);
+                    }
+                }
+            }
             return { message: 'Hủy đơn hàng thành công.' };
         } catch (err) {
             await transaction.rollback();

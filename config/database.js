@@ -11,7 +11,8 @@ const dbConfig = {
     options: {
         encrypt: false,                 // Đặt false khi chạy SQL Server môi trường Local
         trustServerCertificate: true,   // Khóa chết lỗi "The certificate chain was not trusted"
-        enableArithAbort: true          //  THÊM: tránh warning deprecated
+        enableArithAbort: true,          //  THÊM: tránh warning deprecated
+        useUTC: false                   // Đọc ghi datetime theo múi giờ địa phương (ICT)
     },
     pool: {
         max: 15,                        // Số lượng kết nối tối đa
