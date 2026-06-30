@@ -31,11 +31,10 @@ VALUES
 (N'Vũ Tuyết Mai',      'CHEF',      'chefcorp@4',   0, GETDATE()); -- chef_id: 5
 GO
 
--- =========================================================================
--- 2. KHỞI TẠO THỰC ĐƠN GỐC (MASTER_MENUS)
--- =========================================================================
-INSERT INTO [dbo].[master_menus] ([restaurant_name], [updated_at])
-VALUES (N'Nhà Hàng Ẩm Thực Việt Grand Palace', GETDATE()); -- master_menu_id: 1
+SET IDENTITY_INSERT [dbo].[master_menus] ON;
+INSERT INTO [dbo].[master_menus] ([master_menu_id], [restaurant_name], [updated_at])
+VALUES (1, N'Nhà Hàng Ẩm Thực Việt Grand Palace', GETDATE()); -- master_menu_id: 1
+SET IDENTITY_INSERT [dbo].[master_menus] OFF;
 GO
 
 -- =========================================================================

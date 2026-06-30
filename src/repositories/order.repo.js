@@ -80,7 +80,7 @@ class OrderRepository {
         const result = await pool.request().query(`
             SELECT * FROM [dbo].[orders] 
             WHERE status = '${constants.ORDER_STATUS.PENDING}' 
-            ORDER BY created_at DESC
+            ORDER BY created_at ASC
         `);
         return result.recordset.map(row => new Order(row));
     }
@@ -89,7 +89,12 @@ class OrderRepository {
         const pool = await poolPromise;
         const result = await pool.request()
             .input('limit', sql.Int, limit)
-            .query(`SELECT TOP (@limit) * FROM [dbo].[orders] ORDER BY created_at DESC`);
+            .query(`
+                SELECT * FROM (
+                    SELECT TOP (@limit) * FROM [dbo].[orders] ORDER BY created_at DESC
+                ) AS sub
+                ORDER BY created_at ASC
+            `);
         return result.recordset.map(row => new Order(row));
     }
 

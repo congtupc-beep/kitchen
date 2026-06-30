@@ -41,6 +41,11 @@ class OrderListManager {
             this.filteredOrders = this.orders.filter(o => o.status === this.currentFilter);
         }
         this.renderOrderList();
+        
+        // Auto select first order if none is selected
+        if (this.filteredOrders.length > 0 && !this.selectedOrderId) {
+            this.selectOrder(this.filteredOrders[0].order_id);
+        }
     }
 
     renderOrderList() {
@@ -70,7 +75,7 @@ class OrderListManager {
                         <span class="order-status-badge status-${order.status.toLowerCase()}">${this.getStatusText(order.status)}</span>
                     </div>
                     <div class="order-card-info">
-                        <div><strong>Bàn ${order.table_id}</strong></div>
+                        <div><strong>${this.formatTableId(order.table_id)}</strong></div>
                         <div><i class="fa-solid fa-users"></i> ${order.guest_count || 0} khách</div>
                         <div><i class="fa-solid fa-utensils"></i> ${order.items?.length || 0} món</div>
                     </div>
@@ -108,7 +113,7 @@ class OrderListManager {
                 <div class="order-detail-info">
                     <h2>#ORD-${String(order.order_id).padStart(5, '0')}</h2>
                     <div class="order-meta">
-                        <span><i class="fa-solid fa-chair"></i> Bàn ${order.table_id}</span>
+                        <span><i class="fa-solid fa-chair"></i> ${this.formatTableId(order.table_id)}</span>
                         <span><i class="fa-solid fa-users"></i> ${order.guest_count || 0} khách</span>
                         <span><i class="fa-solid fa-clock"></i> ${this.formatDateTime(order.created_at)}</span>
                     </div>
@@ -350,6 +355,15 @@ class OrderListManager {
     isStatusBefore(currentStatus, targetStatus) {
         const statusOrder = ['PENDING', 'PROCESSING', 'DONE'];
         return statusOrder.indexOf(currentStatus) > statusOrder.indexOf(targetStatus);
+    }
+
+    formatTableId(tableId) {
+        if (!tableId) return '';
+        const name = String(tableId).trim();
+        if (name.toLowerCase().startsWith('bàn')) {
+            return name;
+        }
+        return `Bàn ${name}`;
     }
 
     formatMoney(amount) {
