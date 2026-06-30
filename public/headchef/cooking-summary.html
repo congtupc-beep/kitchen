@@ -22,6 +22,20 @@
                 <div class="menu-item-link" onclick="location.href='/headchef/dashboard.html'">
                     <div class="link-main-content"><i class="fa-solid fa-chart-line"></i> Tổng quan</div>
                 </div>
+
+                <div class="menu-item-link" onclick="location.href='/headchef/master-menu.html'">
+                    <div class="link-main-content"><i class="fa-solid fa-book-open"></i> Thực đơn gốc</div>
+                </div>
+
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-list-check"></i> Quản lý thực đơn</div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="sub-menu-container">
+                    <button class="btn-sub-badge" onclick="location.href='/headchef/menu-daily.html'">
+                        <i class="fa-solid fa-calendar-day"></i> Thực đơn hàng ngày
+                    </button>
+                </div>
                 
                 <div class="menu-item-link active">
                     <div class="link-main-content"><i class="fa-solid fa-kitchen-set"></i> Quản lý hàng bếp</div>
@@ -31,9 +45,7 @@
                     <button class="btn-sub-badge" onclick="location.href='/headchef/order-list.html'">
                         <i class="fa-solid fa-list"></i> Danh sách order
                     </button>
-                    
-                    <div class="menu-divider" style="margin: 8px 0; border-top: 1px dashed rgba(255,255,255,0.2);"></div>
-                    
+                    <div class="menu-divider" style="margin: 8px 0; border-top: 1px dashed rgba(0,0,0,0.1);"></div>
                     <button class="btn-sub-badge active status-tab" data-status="WAITING" onclick="cookingSummaryManager.switchStatus('WAITING', this)">
                         <i class="fa-solid fa-clock"></i> Đang chờ nấu
                     </button>
@@ -119,19 +131,150 @@
         </main>
     </div>
 
+    <!-- ===== TASK DETAIL MODAL ===== -->
+    <div class="dish-modal-overlay" id="taskDetailModalOverlay" onclick="if(event.target===this) cookingSummaryManager.closeTaskModal()">
+        <div class="dish-modal-box" style="max-width:800px;">
+            <div class="dish-modal-top">
+                <h3><i class="fa-solid fa-fire-burner"></i> Chi tiết tác vụ chế biến</h3>
+                <button class="dish-modal-close" onclick="cookingSummaryManager.closeTaskModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="taskDetailModalBody"></div>
+        </div>
+    </div>
+
+    <style>
+        /* ===== TASK DETAIL MODAL STYLES ===== */
+        .task-modal-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 24px;
+            padding: 24px 24px 0;
+        }
+        @media (max-width: 560px) { .task-modal-layout { grid-template-columns: 1fr; } }
+        .task-modal-img {
+            width:100%; height:180px; border-radius:14px;
+            background:#f0f4f8; overflow:hidden;
+            display:flex; align-items:center; justify-content:center;
+            font-size:48px; color:#cbd5e1;
+        }
+        .task-modal-img img { width:100%; height:100%; object-fit:cover; }
+        .task-modal-section { margin-bottom:18px; }
+        .task-modal-section-title {
+            font-size:12px; font-weight:700; color:#475569;
+            text-transform:uppercase; letter-spacing:0.5px;
+            margin-bottom:10px;
+            display:flex; align-items:center; gap:6px;
+        }
+        .task-modal-stats-grid {
+            display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+        }
+        .task-modal-stat {
+            background:#f6f8fa; border-radius:10px;
+            padding:12px; text-align:center;
+            border:1px solid #e1e4e8;
+        }
+        .task-modal-stat-val { font-size:22px; font-weight:800; color:#0969da; }
+        .task-modal-stat-val small { font-size:12px; font-weight:400; }
+        .task-modal-stat-lbl { font-size:11px; color:#64748b; margin-top:2px; }
+        .task-modal-detail-rows { display:flex; flex-direction:column; gap:8px; }
+        .task-modal-row {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:8px 12px; background:#f9fafb; border-radius:8px;
+            font-size:13px;
+        }
+        .task-modal-row-label { color:#64748b; font-weight:500; }
+        .task-modal-notes {
+            background:#fffbeb; border:1px solid #fde68a;
+            border-radius:8px; padding:10px 14px;
+            font-size:13px; color:#92400e; line-height:1.6;
+        }
+        .task-modal-allergy {
+            background:#ffebe9; border:1px solid #ffcdd2;
+            border-radius:8px; padding:10px 14px;
+            font-size:13px; font-weight:600; color:#cf222e;
+            display:flex; align-items:center; gap:8px;
+            margin-bottom:18px;
+        }
+        /* Order liên quan */
+        .task-orders-list { display:flex; flex-direction:column; gap:10px; }
+        .task-order-card {
+            border:1px solid #e1e4e8; border-radius:10px;
+            overflow:hidden;
+        }
+        .task-order-header {
+            display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+            padding:10px 14px;
+            background:#f6f8fa; border-bottom:1px solid #e1e4e8;
+            font-size:13px;
+        }
+        .task-order-id { font-weight:700; color:#1a1a1a; }
+        .task-order-time { color:#94a3b8; font-size:12px; margin-left:auto; }
+        .task-order-items { padding:10px 14px; display:flex; flex-direction:column; gap:6px; }
+        .task-order-item {
+            display:flex; align-items:center; gap:10px;
+            font-size:13px;
+        }
+        .task-item-qty {
+            background:#0969da; color:white;
+            font-weight:700; font-size:12px;
+            padding:2px 8px; border-radius:20px; min-width:30px; text-align:center;
+        }
+        .task-item-name { font-weight:600; color:#1a1a1a; flex:1; }
+        .task-item-note { color:#64748b; font-size:12px; }
+
+        /* Dùng chung cho cả 2 modal */
+        .dish-modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(15,23,42,0.55);
+            z-index: 1000;
+            align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .dish-modal-overlay.open { display: flex; }
+        .dish-modal-box {
+            background: white; border-radius: 20px;
+            width: 100%; max-width: 720px; max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+            animation: modalIn 0.22s ease;
+        }
+        @keyframes modalIn {
+            from { opacity:0; transform:scale(0.95) translateY(12px); }
+            to   { opacity:1; transform:scale(1) translateY(0); }
+        }
+        .dish-modal-top {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:18px 24px; border-bottom:1px solid #e1e4e8;
+            position:sticky; top:0; background:white; z-index:1;
+        }
+        .dish-modal-top h3 { margin:0; font-size:16px; font-weight:700; color:#1a1a1a; }
+        .dish-modal-close {
+            width:32px; height:32px; border-radius:50%;
+            border:none; background:#f1f5f9; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:14px; color:#475569;
+        }
+        .dish-modal-close:hover { background:#e2e8f0; }
+    </style>
+
     <script src="/assets/js/shared/api-client.js"></script>
     <script src="/assets/js/shared/auth.js"></script>
     <script src="/assets/js/shared/socket-client.js"></script>
     <script src="/assets/js/shared/toast.js"></script>
     <script src="/assets/js/headchef/cooking-summary.js"></script>
     <script>
-        // Điều chỉnh link "Tổng quan" theo role sau khi DOM load
         document.addEventListener('DOMContentLoaded', () => {
             const user = JSON.parse(localStorage.getItem('chef_user') || 'null');
             if (user && user.role === 'CHEF') {
                 const overviewLink = document.querySelector('.menu-item-link[onclick*="dashboard"]');
                 if (overviewLink) overviewLink.setAttribute('onclick', "location.href='/chef/dashboard.html'");
             }
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && cookingSummaryManager) cookingSummaryManager.closeTaskModal();
+            });
         });
     </script>
 </body>

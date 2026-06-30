@@ -43,15 +43,21 @@ class CookingSummaryManager {
     }
 
     getTaskMinutes(task) {
-    // Đảm bảo các trường completed_at, started_at, created_at tồn tại trong object task từ backend
-    const source = task.status === 'DONE'
-        ? (task.completed_at || task.started_at || task.created_at)
-        : task.status === 'COOKING'
-            ? (task.started_at || task.created_at)
-            : task.created_at;
-            
-    return this.getDiffMinutes(source);
-}
+        // WAITING: thời gian chờ = hiện tại - created_at
+        // COOKING: thời gian đang nấu = hiện tại - started_at
+        // DONE: thời gian đã nấu xong = completed_at - started_at (không đếm tiếp)
+        if (task.status === 'DONE') {
+            const start = this.parseDate(task.started_at || task.created_at);
+            const end = this.parseDate(task.completed_at);
+            if (!start || !end) return 0;
+            const diff = end.getTime() - start.getTime();
+            return diff > 0 ? Math.floor(diff / 60000) : 0;
+        } else if (task.status === 'COOKING') {
+            return this.getDiffMinutes(task.started_at || task.created_at);
+        } else {
+            return this.getDiffMinutes(task.created_at);
+        }
+    }
 
     formatDateTime(value) {
         const date = this.parseDate(value);
@@ -225,12 +231,109 @@ class CookingSummaryManager {
 
     async viewTaskDetail(taskId) {
         try {
+            this.openTaskModal('<div style="text-align:center;padding:40px 20px;color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin" style="font-size:32px;"></i><p style="margin-top:12px;">Đang tải chi tiết...</p></div>');
+
             const response = await window.apiClient.get(`/kitchen/tasks/${taskId}`);
             const task = response.data;
-            alert(`Chi tiết Task #${taskId}\n\nMón: ${task.dish_name}\nSố lượng: ${task.total_quantity}\nBàn: ${task.table_ids}\nGhi chú: ${task.notes || 'Không có'}\nTrạng thái: ${task.status}`);
+
+            // Lấy orders liên quan
+            let orderItemsHtml = '';
+            try {
+                const ordersRes = await window.apiClient.get('/orders/recent?limit=100');
+                const relatedOrders = (ordersRes.data || []).filter(o => o.items && o.items.some(i => i.task_id === taskId));
+                if (relatedOrders.length > 0) {
+                    orderItemsHtml = `
+                        <div class="task-modal-section">
+                            <div class="task-modal-section-title"><i class="fa-solid fa-receipt"></i> Đơn hàng liên quan (${relatedOrders.length} đơn)</div>
+                            <div class="task-orders-list">
+                                ${relatedOrders.map(order => {
+                                    const items = order.items.filter(i => i.task_id === taskId);
+                                    return `
+                                        <div class="task-order-card">
+                                            <div class="task-order-header">
+                                                <span class="task-order-id"><i class="fa-solid fa-hashtag"></i> ORD-${String(order.order_id).padStart(5,'0')}</span>
+                                                <span><i class="fa-solid fa-chair"></i> Bàn ${order.table_id}</span>
+                                                <span class="order-status-badge status-${order.status.toLowerCase()}">${this.getStatusText(order.status)}</span>
+                                                <span class="task-order-time">${this.formatDateTime(order.created_at)}</span>
+                                            </div>
+                                            <div class="task-order-items">
+                                                ${items.map(item => `
+                                                    <div class="task-order-item">
+                                                        <span class="task-item-qty">x${item.quantity}</span>
+                                                        <span class="task-item-name">${item.dish_name || 'Món #' + item.dish_id}</span>
+                                                        ${item.note ? `<span class="task-item-note"><i class="fa-solid fa-note-sticky"></i> ${item.note}</span>` : ''}
+                                                        <span class="order-status-badge status-${item.status.toLowerCase()}">${this.getStatusText(item.status)}</span>
+                                                    </div>`).join('')}
+                                            </div>
+                                        </div>`;
+                                }).join('')}
+                            </div>
+                        </div>`;
+                }
+            } catch (_) {}
+
+            const price = new Intl.NumberFormat('vi-VN').format(task.price || 0);
+            const statusClass = task.status === 'WAITING' ? 'status-pending'
+                              : task.status === 'COOKING' ? 'status-processing'
+                              : task.status === 'DONE'    ? 'status-done'
+                              : 'status-cancelled';
+
+            const html = `
+                <div class="task-modal-layout">
+                    <div class="task-modal-img-col">
+                        <div class="task-modal-img">
+                            ${task.image_url ? `<img src="${task.image_url}" alt="${task.dish_name}" onerror="this.parentElement.innerHTML='<i class=\\'fa-solid fa-utensils\\'></i>'">` : `<i class="fa-solid fa-utensils"></i>`}
+                        </div>
+                        <div style="text-align:center;margin-top:12px;">
+                            <div style="font-weight:800;font-size:17px;color:#1a1a1a;">${task.dish_name}</div>
+                            <div style="font-size:20px;font-weight:700;color:#0969da;margin-top:4px;">${price}đ</div>
+                        </div>
+                    </div>
+                    <div class="task-modal-info-col">
+                        <div class="task-modal-section">
+                            <div class="task-modal-section-title"><i class="fa-solid fa-chart-bar"></i> Thông số tác vụ</div>
+                            <div class="task-modal-stats-grid">
+                                <div class="task-modal-stat"><div class="task-modal-stat-val">${task.total_quantity}</div><div class="task-modal-stat-lbl">Tổng số lượng</div></div>
+                                <div class="task-modal-stat"><div class="task-modal-stat-val">${task.waiting_time_mins ?? '-'}<small>p</small></div><div class="task-modal-stat-lbl">Thời gian chờ</div></div>
+                                <div class="task-modal-stat"><div class="task-modal-stat-val">${task.cooking_time_mins ?? '-'}<small>p</small></div><div class="task-modal-stat-lbl">Thời gian nấu</div></div>
+                            </div>
+                        </div>
+                        <div class="task-modal-section">
+                            <div class="task-modal-section-title"><i class="fa-solid fa-circle-info"></i> Thông tin chi tiết</div>
+                            <div class="task-modal-detail-rows">
+                                <div class="task-modal-row"><span class="task-modal-row-label">Trạng thái</span><span class="order-status-badge ${statusClass}">${this.getStatusText(task.status)}</span></div>
+                                <div class="task-modal-row"><span class="task-modal-row-label">Bàn phục vụ</span><span><i class="fa-solid fa-chair" style="color:#94a3b8;margin-right:4px;"></i>${task.table_ids || 'N/A'}</span></div>
+                                ${task.assigned_chef_id ? `<div class="task-modal-row"><span class="task-modal-row-label">Đầu bếp nhận</span><span>Chef #${task.assigned_chef_id}</span></div>` : ''}
+                                <div class="task-modal-row"><span class="task-modal-row-label">Tạo lúc</span><span>${this.formatDateTime(task.created_at)}</span></div>
+                                ${task.started_at ? `<div class="task-modal-row"><span class="task-modal-row-label">Bắt đầu nấu</span><span>${this.formatDateTime(task.started_at)}</span></div>` : ''}
+                                ${task.completed_at ? `<div class="task-modal-row"><span class="task-modal-row-label">Hoàn thành</span><span>${this.formatDateTime(task.completed_at)}</span></div>` : ''}
+                            </div>
+                        </div>
+                        ${task.notes ? `<div class="task-modal-section"><div class="task-modal-section-title"><i class="fa-solid fa-note-sticky"></i> Ghi chú</div><div class="task-modal-notes">${task.notes}</div></div>` : ''}
+                        ${task.has_allergy ? `<div class="task-modal-allergy"><i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo dị ứng — Kiểm tra ghi chú kỹ trước khi chế biến!</div>` : ''}
+                    </div>
+                </div>
+                <div style="padding:0 24px 24px;">${orderItemsHtml}</div>
+            `;
+            this.openTaskModal(html);
         } catch (error) {
             Toast.error('Không thể tải chi tiết task');
+            document.getElementById('taskDetailModalOverlay').classList.remove('open');
         }
+    }
+
+    openTaskModal(html) {
+        document.getElementById('taskDetailModalBody').innerHTML = html;
+        document.getElementById('taskDetailModalOverlay').classList.add('open');
+    }
+
+    closeTaskModal() {
+        document.getElementById('taskDetailModalOverlay').classList.remove('open');
+    }
+
+    getStatusText(status) {
+        const map = { 'PENDING':'Mới','PROCESSING':'Đang nấu','WAITING':'Chờ nấu','COOKING':'Đang nấu','DONE':'Hoàn thành','CANCELLED':'Đã hủy' };
+        return map[status] || status;
     }
 
     async startCooking(taskId) {
@@ -262,7 +365,19 @@ class CookingSummaryManager {
         }
 
         try {
-            await window.apiClient.post(`/kitchen/tasks/${taskId}/complete`);
+            const chef = JSON.parse(localStorage.getItem('chef_user'));
+            if (!chef || !chef.chef_id) {
+                Toast.error('Không tìm thấy thông tin đầu bếp');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fa-solid fa-check"></i> Hoàn thành món`;
+                }
+                return;
+            }
+            await window.apiClient.post(`/kitchen/tasks/${taskId}/complete`, {
+                chef_id: chef.chef_id,
+                chef_role: chef.role
+            });
             this.currentStatus = 'DONE';
             this.updateTabState();
             Toast.success('Món ăn đã chế biến xong, sẵn sàng phục vụ!');

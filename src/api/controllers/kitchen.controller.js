@@ -58,7 +58,9 @@ class KitchenController {
     async completeTask(req, res, next) {
         try {
             const taskId = req.params.id;
-            const task = await kitchenService.completeTask(taskId);
+            const chefId = req.body.chef_id;
+            const chefRole = req.body.chef_role;
+            const task = await kitchenService.completeTask(taskId, chefId, chefRole);
             return responseBuilder.success(res, task, 'Hoàn thành tác vụ nấu ăn thành công.');
         } catch (error) { 
             next(error); 

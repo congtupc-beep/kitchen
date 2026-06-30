@@ -44,20 +44,14 @@ poolPromise
 // KHỐI 4: MOUNT CÁC API ROUTES (Đầy đủ cho cả 5 thành viên)
 // =========================================================================
 const authRoutes = require('./src/api/routes/auth.routes');
-/*
-const masterMenuRoutes = require('./src/api/routes/masterMenu.routes');
 const dishRoutes = require('./src/api/routes/dish.routes');
-*/
 
 const dailyMenuRoutes = require('./src/api/routes/dailyMenu.routes');
 const orderRoutes = require('./src/api/routes/order.routes');
 const kitchenRoutes = require('./src/api/routes/kitchen.routes');
 
 app.use('/api/auth', authRoutes);                  // Thành viên A - Xác thực tài khoản
-/*
-app.use('/api/master-menu', masterMenuRoutes);      // Thành viên B - Danh mục thực đơn gốc
-app.use('/api/dishes', dishRoutes);                  // Thành viên B - Danh sách món ăn có sẵn (Read-only)
-*/
+app.use('/api/dishes', dishRoutes);                // Danh sách món ăn (Read-only, tất cả role)
 app.use('/api/daily-menus', dailyMenuRoutes);      // Thành viên C - Quản lý thực đơn ngày (Head Chef)
 
 // 🐛 DEBUG: Kiểm tra xem biến nào đang bị lỗi

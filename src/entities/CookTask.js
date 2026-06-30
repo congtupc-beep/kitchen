@@ -53,11 +53,13 @@ class CookTask {
     }
 
     getWaitingTime() {
+        // Thời gian chờ: từ lúc tạo đến lúc bắt đầu nấu (hoặc đến hiện tại nếu chưa nấu)
         const end = this.started_at ? this.started_at : new Date();
         return Math.max(0, Math.floor((end - this.created_at) / 1000 / 60)); 
     }
 
     getCookingTime() {
+        // Thời gian nấu: từ lúc bắt đầu nấu đến lúc hoàn thành (hoặc đến hiện tại nếu đang nấu)
         if (!this.started_at) return 0;
         const end = this.completed_at ? this.completed_at : new Date();
         return Math.max(0, Math.floor((end - this.started_at) / 1000 / 60)); 
@@ -75,12 +77,13 @@ class CookTask {
             status: this.status,
             price: this.price,
             image_url: this.image_url,
-            has_allergy: this.hasAllergyNote(), // ⚠️ ĐÃ BỔ SUNG: Field has_allergy
+            has_allergy: this.hasAllergyNote(),
             waiting_time_mins: this.getWaitingTime(),
             cooking_time_mins: this.getCookingTime(),
-            created_at: this.created_at,
-            started_at: this.started_at,
-            completed_at: this.completed_at
+            // Serialize thành ISO string có Z để frontend parseDate() nhận đúng UTC
+            created_at: this.created_at ? this.created_at.toISOString() : null,
+            started_at: this.started_at ? this.started_at.toISOString() : null,
+            completed_at: this.completed_at ? this.completed_at.toISOString() : null
         };
     }
 }

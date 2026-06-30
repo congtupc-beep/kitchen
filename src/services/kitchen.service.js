@@ -111,8 +111,10 @@ class KitchenService {
 
     /**
      * ✅ 5. HOÀN THÀNH TASK (COOKING → DONE)
+     * Chỉ đầu bếp đang giữ task (assigned_chef_id) mới được hoàn thành,
+     * trừ HEAD_CHEF có thể hoàn thành bất kỳ task nào.
      */
-    async completeTask(taskId) {
+    async completeTask(taskId, chefId, chefRole) {
         const pool = await poolPromise;
         const transaction = new sql.Transaction(pool);
         
@@ -131,6 +133,14 @@ class KitchenService {
             if (task.status === constants.TASK_STATUS.DONE) throw new AppError('Tác vụ đã hoàn thành trước đó!', 400);
             if (task.status !== constants.TASK_STATUS.COOKING) {
                 throw new AppError(`Tác vụ đang ở trạng thái ${task.status}, không thể hoàn thành!`, 400);
+            }
+
+            // ✅ Kiểm tra quyền: chỉ đầu bếp đang nắm task mới được hoàn thành
+            // HEAD_CHEF được phép hoàn thành bất kỳ task nào
+            if (chefId && chefRole !== constants.ROLE.HEAD_CHEF) {
+                if (task.assigned_chef_id && Number(task.assigned_chef_id) !== Number(chefId)) {
+                    throw new AppError('Bạn không có quyền hoàn thành món này. Món đang được nấu bởi đầu bếp khác!', 403);
+                }
             }
 
             const rowsAffected = await cookTaskRepo.updateCompletedAt(taskId, transaction);

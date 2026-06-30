@@ -229,25 +229,280 @@
             </div>
         </header>
         <main class="workspace-content">
-            <!-- Vùng nội dung chính -->
+
+            <!-- GREETING + CLOCK -->
+            <div class="dash-header-row">
+                <div>
+                    <div class="dash-greet" id="dashGreet">Xin chào!</div>
+                    <div class="dash-sub">Đây là tổng quan ca làm việc của bạn hôm nay.</div>
+                </div>
+                <div class="dash-clock-box">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="dashClock">--:--</span>
+                </div>
+            </div>
+
+            <!-- STAT CARDS -->
+            <div class="dash-stats-grid">
+                <div class="dash-stat-card" onclick="location.href='/chef/cooking-summary.html?status=WAITING'">
+                    <div class="dash-stat-icon" style="background:#fff3e0;color:#f57c00;">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div class="dash-stat-body">
+                        <div class="dash-stat-val" id="statWaiting">--</div>
+                        <div class="dash-stat-lbl">Đang chờ nấu</div>
+                    </div>
+                </div>
+                <div class="dash-stat-card" onclick="location.href='/chef/cooking-summary.html?status=COOKING'">
+                    <div class="dash-stat-icon" style="background:#e3f2fd;color:#1976d2;">
+                        <i class="fa-solid fa-fire-burner"></i>
+                    </div>
+                    <div class="dash-stat-body">
+                        <div class="dash-stat-val" id="statCooking">--</div>
+                        <div class="dash-stat-lbl">Đang nấu</div>
+                    </div>
+                </div>
+                <div class="dash-stat-card" onclick="location.href='/chef/cooking-summary.html?status=DONE'">
+                    <div class="dash-stat-icon" style="background:#e8f5e9;color:#2e7d32;">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div class="dash-stat-body">
+                        <div class="dash-stat-val" id="statDone">--</div>
+                        <div class="dash-stat-lbl">Hoàn thành</div>
+                    </div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="dash-stat-icon" style="background:#f3e8ff;color:#7c3aed;">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <div class="dash-stat-body">
+                        <div class="dash-stat-val" id="statTotal">--</div>
+                        <div class="dash-stat-lbl">Tổng tác vụ</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANELS -->
+            <div class="dash-panels">
+
+                <!-- Panel trái: Món đang xử lý -->
+                <div class="dash-panel">
+                    <div class="dash-panel-head">
+                        <span><i class="fa-solid fa-fire"></i> Món của tôi đang xử lý</span>
+                        <a href="/chef/cooking-summary.html" class="dash-panel-link">Xem tất cả</a>
+                    </div>
+                    <div class="dash-panel-body" id="activeTasksList">
+                        <div class="dash-empty">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <p>Đang tải...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel phải: Đơn hàng gần đây -->
+                <div class="dash-panel">
+                    <div class="dash-panel-head">
+                        <span><i class="fa-solid fa-receipt"></i> Đơn hàng gần đây</span>
+                        <a href="/chef/order-list.html" class="dash-panel-link">Xem tất cả</a>
+                    </div>
+                    <div class="dash-panel-body" id="recentOrdersList">
+                        <div class="dash-empty">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <p>Đang tải...</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
         </main>
     </div>
-    
+
+    <!-- DASHBOARD CSS -->
+    <style>
+        /* ---- Header row ---- */
+        .dash-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .dash-greet {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .dash-sub {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .dash-clock-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1976d2;
+            background: #e3f2fd;
+            padding: 10px 18px;
+            border-radius: 12px;
+        }
+
+        /* ---- Stat cards ---- */
+        .dash-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 900px) { .dash-stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 500px) { .dash-stats-grid { grid-template-columns: 1fr; } }
+
+        .dash-stat-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .dash-stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.10);
+        }
+        .dash-stat-icon {
+            width: 52px; height: 52px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .dash-stat-val {
+            font-size: 30px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+        }
+        .dash-stat-lbl {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* ---- Panels ---- */
+        .dash-panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 860px) { .dash-panels { grid-template-columns: 1fr; } }
+
+        .dash-panel {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .dash-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            font-weight: 700;
+            font-size: 14px;
+            color: #0f172a;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .dash-panel-head i { margin-right: 6px; color: #1976d2; }
+        .dash-panel-link {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1976d2;
+            text-decoration: none;
+        }
+        .dash-panel-link:hover { text-decoration: underline; }
+        .dash-panel-body {
+            padding: 8px 0;
+            overflow-y: auto;
+            max-height: 380px;
+        }
+
+        /* ---- Task row ---- */
+        .dash-task-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 18px;
+            border-bottom: 1px solid #f8fafc;
+            transition: background 0.15s;
+        }
+        .dash-task-row:hover { background: #f8fafc; }
+        .dash-task-row.cooking { border-left: 3px solid #1976d2; }
+        .dash-task-icon {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px;
+            background: #f1f5f9; color: #64748b;
+            flex-shrink: 0;
+        }
+        .dash-task-row.cooking .dash-task-icon { background: #e3f2fd; color: #1976d2; }
+        .dash-task-info { flex: 1; min-width: 0; }
+        .dash-task-name { font-weight: 700; font-size: 13px; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dash-task-meta { display: flex; gap: 10px; font-size: 11px; color: #64748b; margin-top: 2px; }
+        .dash-task-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .dash-status-dot {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .dash-status-dot.cooking { background: #ddf4ff; color: #0969da; }
+        .dash-status-dot.waiting { background: #fff8c5; color: #9a6700; }
+
+        /* ---- Order row ---- */
+        .dash-order-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 18px;
+            border-bottom: 1px solid #f8fafc;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .dash-order-row:hover { background: #f8fafc; }
+        .dash-order-id { font-weight: 800; font-size: 13px; color: #0f172a; min-width: 52px; }
+        .dash-order-info { flex: 1; display: flex; gap: 12px; font-size: 12px; color: #64748b; }
+        .dash-order-info i { margin-right: 3px; }
+
+        /* ---- Empty state ---- */
+        .dash-empty {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 36px 20px;
+            color: #94a3b8;
+            font-size: 13px;
+            gap: 8px;
+        }
+        .dash-empty i { font-size: 32px; }
+    </style>
+
     <script src="/assets/js/shared/api-client.js"></script>
     <script src="/assets/js/shared/auth.js"></script>
+    <script src="/assets/js/shared/socket-client.js"></script>
+    <script src="/assets/js/shared/toast.js"></script>
+    <script src="/assets/js/chef/dashboard.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // 🛡️ Kiểm tra quyền CHEF
-            const currentChef = window.checkAuthGuard(['CHEF']);
-            if (currentChef) {
-                document.getElementById('chefNameTxt').innerText = currentChef.name;
-                document.getElementById('chefRoleTxt').innerText = 'Đầu Bếp';
-            }
-        });
-        
-        // 🔒 Hàm cảnh báo phân quyền
         function denyAccess(featureName) {
-            alert(`🔒 [AN NINH PHÂN QUYỀN]\n\nTài khoản "Đầu Bếp" KHÔNG có quyền truy cập:\n➤ "${featureName}"\n\nVui lòng liên hệ Bếp Trưởng để được cấp quyền.`);
+            alert(`🔒 Tài khoản "Đầu Bếp" không có quyền truy cập: "${featureName}"\nVui lòng liên hệ Bếp Trưởng.`);
         }
     </script>
 </body>

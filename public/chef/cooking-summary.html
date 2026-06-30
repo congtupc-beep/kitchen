@@ -124,5 +124,57 @@
     <script src="/assets/js/shared/socket-client.js"></script>
     <script src="/assets/js/shared/toast.js"></script>
     <script src="/assets/js/chef/cooking-summary.js"></script>
+
+    <!-- Task detail modal (dùng chung CSS từ headchef) -->
+    <div class="dish-modal-overlay" id="taskDetailModalOverlay" onclick="if(event.target===this) cookingSummaryManager.closeTaskModal()">
+        <div class="dish-modal-box" style="max-width:800px;">
+            <div class="dish-modal-top">
+                <h3><i class="fa-solid fa-fire-burner"></i> Chi tiết tác vụ chế biến</h3>
+                <button class="dish-modal-close" onclick="cookingSummaryManager.closeTaskModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="taskDetailModalBody"></div>
+        </div>
+    </div>
+    <style>
+        .dish-modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:1000;align-items:center;justify-content:center;padding:20px}
+        .dish-modal-overlay.open{display:flex}
+        .dish-modal-box{background:#fff;border-radius:20px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.25);animation:modalIn .22s ease}
+        @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+        .dish-modal-top{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #e1e4e8;position:sticky;top:0;background:#fff;z-index:1}
+        .dish-modal-top h3{margin:0;font-size:16px;font-weight:700;color:#1a1a1a}
+        .dish-modal-close{width:32px;height:32px;border-radius:50%;border:none;background:#f1f5f9;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:#475569}
+        .task-modal-layout{display:grid;grid-template-columns:200px 1fr;gap:24px;padding:24px 24px 0}
+        .task-modal-img{width:100%;height:180px;border-radius:14px;background:#f0f4f8;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:48px;color:#cbd5e1}
+        .task-modal-img img{width:100%;height:100%;object-fit:cover}
+        .task-modal-section{margin-bottom:18px}
+        .task-modal-section-title{font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+        .task-modal-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .task-modal-stat{background:#f6f8fa;border-radius:10px;padding:12px;text-align:center;border:1px solid #e1e4e8}
+        .task-modal-stat-val{font-size:22px;font-weight:800;color:#0969da}
+        .task-modal-stat-val small{font-size:12px;font-weight:400}
+        .task-modal-stat-lbl{font-size:11px;color:#64748b;margin-top:2px}
+        .task-modal-detail-rows{display:flex;flex-direction:column;gap:8px}
+        .task-modal-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f9fafb;border-radius:8px;font-size:13px}
+        .task-modal-row-label{color:#64748b;font-weight:500}
+        .task-modal-notes{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;color:#92400e;line-height:1.6}
+        .task-modal-allergy{background:#ffebe9;border:1px solid #ffcdd2;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;color:#cf222e;display:flex;align-items:center;gap:8px;margin-bottom:18px}
+        .task-orders-list{display:flex;flex-direction:column;gap:10px}
+        .task-order-card{border:1px solid #e1e4e8;border-radius:10px;overflow:hidden}
+        .task-order-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;background:#f6f8fa;border-bottom:1px solid #e1e4e8;font-size:13px}
+        .task-order-id{font-weight:700;color:#1a1a1a}
+        .task-order-time{color:#94a3b8;font-size:12px;margin-left:auto}
+        .task-order-items{padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+        .task-order-item{display:flex;align-items:center;gap:10px;font-size:13px}
+        .task-item-qty{background:#0969da;color:#fff;font-weight:700;font-size:12px;padding:2px 8px;border-radius:20px;min-width:30px;text-align:center}
+        .task-item-name{font-weight:600;color:#1a1a1a;flex:1}
+        .task-item-note{color:#64748b;font-size:12px}
+    </style>
+    <script>
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && cookingSummaryManager) cookingSummaryManager.closeTaskModal();
+        });
+    </script>
 </body>
 </html>

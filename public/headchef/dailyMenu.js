@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fetchDailyMenuData = async (date) => {
         toggleLoading(true);
         try {
+            // Đảm bảo gọi đúng endpoint đã được mount tại server.js
             const response = await window.apiClient.get(`/daily-menus?date=${date}`);
             if (!response || !response.success) {
                 alert(response ? response.message : 'Tải thực đơn thất bại!');

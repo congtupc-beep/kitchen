@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thực Đơn Gốc - Hệ Thống Nhà Bếp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/headchef.css">
+    <style>
+        /* ===== MASTER MENU PAGE STYLES ===== */
+        .mm-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: white;
+            border: 1px solid #e1e4e8;
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .mm-toolbar input[type="text"] {
+            flex: 1;
+            min-width: 180px;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 8px 14px 8px 36px;
+            font-size: 13px;
+            outline: none;
+        }
+        .mm-toolbar input:focus { border-color: #0969da; }
+        .mm-search-wrap { position: relative; flex: 1; min-width: 180px; }
+        .mm-search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 13px; }
+        .mm-toolbar select {
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 13px;
+            background: white;
+            outline: none;
+            cursor: pointer;
+        }
+        .mm-count {
+            font-size: 13px;
+            color: #64748b;
+            white-space: nowrap;
+        }
+        .mm-count strong { color: #0969da; }
+
+        /* Stats row */
+        .mm-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .mm-stat-card {
+            background: white;
+            border: 1px solid #e1e4e8;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+        }
+        .mm-stat-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+        }
+        .mm-stat-value { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+        .mm-stat-label { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+        /* Dish grid */
+        .mm-dish-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 18px;
+        }
+        .mm-dish-card {
+            background: white;
+            border: 1px solid #e1e4e8;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .mm-dish-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(9,105,218,0.12);
+            border-color: #0969da;
+        }
+        .mm-dish-img {
+            width: 100%; height: 150px;
+            object-fit: cover;
+            background: #f0f4f8;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 40px; color: #cbd5e1;
+        }
+        .mm-dish-img img { width: 100%; height: 100%; object-fit: cover; }
+        .mm-dish-body { padding: 14px; }
+        .mm-dish-name { font-weight: 700; font-size: 15px; color: #1a1a1a; margin-bottom: 4px; }
+        .mm-dish-cat {
+            display: inline-block;
+            font-size: 11px; font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+        }
+        .cat-khai-vi  { background:#e0f2fe; color:#0369a1; }
+        .cat-mon-chinh { background:#fef9c3; color:#92400e; }
+        .cat-canh     { background:#dcfce7; color:#166534; }
+        .cat-trang-mieng { background:#fce7f3; color:#9d174d; }
+        .cat-default  { background:#f1f5f9; color:#475569; }
+
+        .mm-dish-desc { font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 10px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .mm-dish-footer { display: flex; align-items: center; justify-content: space-between; }
+        .mm-dish-price { font-weight: 700; font-size: 16px; color: #0969da; }
+        .mm-dish-status {
+            font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px;
+        }
+        .mm-dish-status.active { background: #dafbe1; color: #1a7f37; }
+        .mm-dish-status.inactive { background: #ffebe9; color: #cf222e; }
+
+        /* Category filter tabs */
+        .mm-cat-tabs {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+        }
+        .mm-cat-tab {
+            padding: 6px 14px;
+            border: 1px solid #e1e4e8;
+            border-radius: 20px;
+            font-size: 13px; font-weight: 500;
+            cursor: pointer; background: white;
+            transition: all 0.2s;
+        }
+        .mm-cat-tab:hover { border-color: #0969da; color: #0969da; background: #f0f7ff; }
+        .mm-cat-tab.active { background: #0969da; color: white; border-color: #0969da; }
+
+        /* Empty & loading */
+        .mm-empty {
+            grid-column: 1/-1;
+            text-align: center; padding: 60px 20px; color: #94a3b8;
+        }
+        .mm-empty i { font-size: 56px; margin-bottom: 16px; display: block; }
+        .mm-empty p { font-size: 15px; margin: 0; }
+
+        /* ===== DISH DETAIL MODAL ===== */
+        .dish-modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(15,23,42,0.55);
+            z-index: 1000;
+            align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .dish-modal-overlay.open { display: flex; }
+        .dish-modal-box {
+            background: white;
+            border-radius: 20px;
+            width: 100%; max-width: 720px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+            animation: modalIn 0.22s ease;
+        }
+        @keyframes modalIn {
+            from { opacity:0; transform:scale(0.95) translateY(12px); }
+            to   { opacity:1; transform:scale(1) translateY(0); }
+        }
+        .dish-modal-top {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 18px 24px;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        .dish-modal-top h3 { margin:0; font-size:16px; font-weight:700; color:#1a1a1a; }
+        .dish-modal-close {
+            width:32px; height:32px; border-radius:50%;
+            border:none; background:#f1f5f9; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:14px; color:#475569; transition:background 0.2s;
+        }
+        .dish-modal-close:hover { background:#e2e8f0; }
+        .dish-modal-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 24px;
+            padding: 24px;
+        }
+        @media (max-width: 580px) {
+            .dish-modal-layout { grid-template-columns: 1fr; }
+        }
+        .dish-modal-img {
+            width:100%; height:220px;
+            border-radius:14px; overflow:hidden;
+            background:#f0f4f8;
+            display:flex; align-items:center; justify-content:center;
+        }
+        .dish-modal-img img { width:100%; height:100%; object-fit:cover; }
+        .dish-modal-img-placeholder { font-size:56px; color:#cbd5e1; }
+        .dish-modal-header-row {
+            display:flex; align-items:flex-start; justify-content:space-between;
+            gap:12px; margin-bottom:14px;
+        }
+        .dish-modal-name { margin:0; font-size:22px; font-weight:800; color:#1a1a1a; }
+        .dish-modal-meta { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+        .dish-modal-meta-item { display:flex; align-items:center; gap:10px; font-size:14px; }
+        .dish-modal-meta-item i { width:18px; text-align:center; color:#94a3b8; }
+        .dish-modal-section-title {
+            font-size:13px; font-weight:700; color:#475569;
+            text-transform:uppercase; letter-spacing:0.5px;
+            margin-bottom:8px;
+            display:flex; align-items:center; gap:6px;
+        }
+        .dish-modal-desc { font-size:14px; color:#475569; line-height:1.7; margin:0; }
+    </style>
+</head>
+<body class="dashboard-layout-body">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="kds-sidebar">
+        <div>
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-utensils"></i>
+                <span>Món ngon mỗi ngày</span>
+            </div>
+            <nav class="sidebar-menu-list">
+                <div class="menu-item-link" onclick="location.href='/headchef/dashboard.html'">
+                    <div class="link-main-content"><i class="fa-solid fa-chart-line"></i> Tổng quan</div>
+                </div>
+
+                <div class="menu-item-link active">
+                    <div class="link-main-content"><i class="fa-solid fa-book-open"></i> Thực đơn gốc</div>
+                </div>
+
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-list-check"></i> Quản lý thực đơn</div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="sub-menu-container">
+                    <button class="btn-sub-badge" onclick="location.href='/headchef/menu-daily.html'">
+                        <i class="fa-solid fa-calendar-day"></i> Thực đơn hàng ngày
+                    </button>
+                </div>
+
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-kitchen-set"></i> Quản lý hàng bếp</div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="sub-menu-container">
+                    <button class="btn-sub-badge" onclick="location.href='/headchef/order-list.html'">
+                        <i class="fa-solid fa-list"></i> Danh sách order
+                    </button>
+                    <button class="btn-sub-badge" onclick="location.href='/headchef/cooking-summary.html'">
+                        <i class="fa-solid fa-fire-burner"></i> Tổng hợp chế biến
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN WRAPPER ===== -->
+    <div class="kds-main-wrapper">
+        <header class="kds-navbar">
+            <div class="navbar-left">
+                <h2><i class="fa-solid fa-book-open"></i> Thực Đơn Gốc</h2>
+            </div>
+            <div class="navbar-right">
+                <div class="user-profile-block" onclick="location.href='/shared/profile.html'">
+                    <img src="https://www.w3schools.com/howto/img_avatar.png" alt="Avatar" class="user-avatar">
+                    <div class="user-info-text">
+                        <span class="user-name" id="chefNameTxt">Đang tải...</span>
+                        <span class="user-role" id="chefRoleTxt">Head Chef</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="workspace-content">
+            <!-- Stats -->
+            <div class="mm-stats" id="mmStats">
+                <div class="mm-stat-card">
+                    <div class="mm-stat-icon" style="background:#e0f2fe;color:#0369a1;"><i class="fa-solid fa-utensils"></i></div>
+                    <div><div class="mm-stat-value" id="statTotal">-</div><div class="mm-stat-label">Tổng món ăn</div></div>
+                </div>
+                <div class="mm-stat-card">
+                    <div class="mm-stat-icon" style="background:#dcfce7;color:#166534;"><i class="fa-solid fa-circle-check"></i></div>
+                    <div><div class="mm-stat-value" id="statActive">-</div><div class="mm-stat-label">Đang kinh doanh</div></div>
+                </div>
+                <div class="mm-stat-card">
+                    <div class="mm-stat-icon" style="background:#ffebe9;color:#cf222e;"><i class="fa-solid fa-ban"></i></div>
+                    <div><div class="mm-stat-value" id="statInactive">-</div><div class="mm-stat-label">Tạm ngưng</div></div>
+                </div>
+                <div class="mm-stat-card">
+                    <div class="mm-stat-icon" style="background:#fef9c3;color:#92400e;"><i class="fa-solid fa-tags"></i></div>
+                    <div><div class="mm-stat-value" id="statCategories">-</div><div class="mm-stat-label">Danh mục</div></div>
+                </div>
+            </div>
+
+            <!-- Toolbar: search + filter -->
+            <div class="mm-toolbar">
+                <div class="mm-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="mmSearch" placeholder="Tìm tên món, mô tả...">
+                </div>
+                <select id="mmStatusFilter">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="1">Đang kinh doanh</option>
+                    <option value="0">Tạm ngưng</option>
+                </select>
+                <span class="mm-count">Hiển thị: <strong id="mmDisplayCount">0</strong> món</span>
+            </div>
+
+            <!-- Category tabs -->
+            <div class="mm-cat-tabs" id="mmCatTabs">
+                <button class="mm-cat-tab active" data-cat="">Tất cả</button>
+            </div>
+
+            <!-- Dish grid -->
+            <div class="mm-dish-grid" id="mmDishGrid">
+                <div class="mm-empty">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <p>Đang tải danh sách món ăn...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== DISH DETAIL MODAL ===== -->
+    <div class="dish-modal-overlay" id="dishModal">
+        <div class="dish-modal-box">
+            <div class="dish-modal-top">
+                <h3><i class="fa-solid fa-bowl-food"></i> Chi tiết món ăn</h3>
+                <button class="dish-modal-close" onclick="masterMenuManager.closeModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="dishModalBody"></div>
+        </div>
+    </div>
+
+    <script src="/assets/js/shared/api-client.js"></script>
+    <script src="/assets/js/shared/auth.js"></script>
+    <script src="/assets/js/shared/toast.js"></script>
+    <script src="/assets/js/headchef/master-menu.js"></script>
+</body>
+</html>
