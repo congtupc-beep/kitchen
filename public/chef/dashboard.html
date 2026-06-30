@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đầu Bếp - Dashboard Tổng Quan</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    
+    <!-- ✅ QUAN TRỌNG: Thư viện Socket.io Client (TỰ ĐỘNG từ server) -->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <style>
+        :root {
+            --sidebar-width: 250px;
+            --navbar-height: 70px;
+            --bg-workspace: #f4f6f9;
+            --sidebar-bg: #ffffff;
+            --text-dark: #333333;
+            --border-light: #e0e0e0;
+            --primary-blue: #1976d2;
+            --hover-blue: #f7fafc;
+        }
+        body.dashboard-layout-body {
+            background-color: var(--bg-workspace);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+        }
+        /* SIDEBAR ĐỒNG BỘ THEO ẢNH PARTICIPANT */
+        .kds-sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100vh;
+            z-index: 10;
+        }
+        .sidebar-brand {
+            padding: 25px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #1976d2;
+            font-weight: 800;
+            font-size: 16px;
+            line-height: 1.2;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .sidebar-brand i { font-size: 26px; }
+        .sidebar-menu-list {
+            list-style: none;
+            padding: 15px 0;
+            margin: 0;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .menu-item-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            color: #4a5568;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .menu-item-link:hover, .menu-item-link.active { background-color: var(--hover-blue); color: #1976d2; }
+        .menu-item-link.active { font-weight: bold; border-left: 4px solid #1976d2; }
+        .menu-item-link.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .link-main-content { display: flex; align-items: center; gap: 12px; }
+        
+        .sub-menu-container {
+            padding: 5px 20px 10px 45px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .btn-sub-badge {
+            width: 100%;
+            padding: 8px 12px;
+            background-color: #ffffff;
+            border: 1px solid #4a5568;
+            border-radius: 6px;
+            font-weight: 600;
+            color: #333;
+            text-align: left;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .btn-sub-badge:hover { 
+            background-color: var(--hover-blue);
+            border-color: #1976d2;
+            color: #1976d2;
+        }
+        .btn-sub-badge.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+        .btn-sub-badge.locked:hover {
+            background-color: #ffffff;
+            border-color: #4a5568;
+            color: #333;
+        }
+        .kds-main-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - var(--sidebar-width));
+            height: 100vh;
+        }
+        .kds-navbar {
+            height: var(--navbar-height);
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+        }
+        .navbar-left h2 { margin: 0; font-size: 18px; font-weight: 700; color: #0f172a; }
+        .navbar-right { display: flex; align-items: center; gap: 20px; }
+        
+        .user-profile-block {
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+            padding: 6px 20px; 
+            border-radius: 30px; 
+            border: 1px solid var(--border-light);
+            background-color: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .user-profile-block:hover {
+            background-color: var(--hover-blue);
+            border-color: #1976d2;
+        }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--primary-blue); object-fit: cover; }
+        .user-info-text { display: flex; flex-direction: column; text-align: left; }
+        .user-info-text .user-name { font-weight: 600; font-size: 14px; color: #0f172a; }
+        .user-info-text .user-role { font-size: 11px; color: #64748b; font-weight: 500; }
+        .workspace-content { flex-grow: 1; padding: 25px; overflow-y: auto; }
+    </style>
+</head>
+<body class="dashboard-layout-body">
+    <aside class="kds-sidebar">
+        <div>
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-utensils"></i>
+                <span>Món ngon mỗi ngày</span>
+            </div>
+            
+            <nav class="sidebar-menu-list">
+                <!-- 1. Tổng quan -->
+                <div class="menu-item-link active" onclick="location.href='/chef/dashboard.html'">
+                    <div class="link-main-content"><i class="fa-solid fa-chart-line"></i> Tổng quan</div>
+                </div>
+                
+                <!-- 2. Thực đơn gốc (KHÔNG có quyền) -->
+                <div class="menu-item-link disabled" onclick="denyAccess('Thực đơn gốc')">
+                    <div class="link-main-content"><i class="fa-solid fa-book-open"></i> Thực đơn gốc</div>
+                </div>
+                
+                <!-- 3. Quản lý thực đơn (KHÔNG có quyền - bao gồm cả menu-daily) -->
+                <div class="menu-item-link disabled" onclick="denyAccess('Quản lý thực đơn')">
+                    <div class="link-main-content"><i class="fa-solid fa-list-check"></i> Quản lý thực đơn</div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="sub-menu-container">
+                    <button class="btn-sub-badge locked" onclick="denyAccess('Thực đơn hàng ngày')">
+                        <i class="fa-solid fa-lock" style="margin-right:6px; font-size:11px;"></i>Thực đơn hàng ngày
+                    </button>
+                </div>
+                
+                <!-- 4. Quản lý hàng bếp (CÓ QUYỀN - order-list & cooking-summary) -->
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-kitchen-set"></i> Quản lý hàng bếp</div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="sub-menu-container">
+                    <button class="btn-sub-badge" onclick="location.href='/chef/order-list.html'">
+                        <i class="fa-solid fa-clipboard-list" style="margin-right:6px; font-size:11px;"></i>Danh sách order
+                    </button>
+                    <button class="btn-sub-badge" onclick="location.href='/chef/cooking-summary.html'">
+                        <i class="fa-solid fa-fire-burner" style="margin-right:6px; font-size:11px;"></i>Tổng hợp chế biến
+                    </button>
+                </div>
+                
+                <!-- 5. Thông báo (KHÔNG có quyền) -->
+                <div class="menu-item-link disabled" onclick="denyAccess('Thông báo')">
+                    <div class="link-main-content"><i class="fa-solid fa-bell"></i> Thông báo</div>
+                </div>
+                
+                <!-- 6. Cài đặt (KHÔNG có quyền) -->
+                <div class="menu-item-link disabled" onclick="denyAccess('Cài đặt')">
+                    <div class="link-main-content"><i class="fa-solid fa-gear"></i> Cài đặt</div>
+                </div>
+            </nav>
+        </div>
+    </aside>
+    
+    <div class="kds-main-wrapper">
+        <header class="kds-navbar">
+            <div class="navbar-left">
+                <h2>Bàn Làm Việc Đầu Bếp</h2>
+            </div>
+            <div class="navbar-right">
+                <div class="user-profile-block" onclick="location.href='/shared/profile.html'" title="Xem thông tin tài khoản & Rời ca">
+                    <img src="https://www.w3schools.com/howto/img_avatar.png" alt="Avatar" class="user-avatar">
+                    <div class="user-info-text">
+                        <span class="user-name" id="chefNameTxt">Đang tải...</span>
+                        <span class="user-role" id="chefRoleTxt">Chef</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main class="workspace-content">
+            <!-- Vùng nội dung chính -->
+        </main>
+    </div>
+    
+    <script src="/assets/js/shared/api-client.js"></script>
+    <script src="/assets/js/shared/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 🛡️ Kiểm tra quyền CHEF
+            const currentChef = window.checkAuthGuard(['CHEF']);
+            if (currentChef) {
+                document.getElementById('chefNameTxt').innerText = currentChef.name;
+                document.getElementById('chefRoleTxt').innerText = 'Đầu Bếp';
+            }
+        });
+        
+        // 🔒 Hàm cảnh báo phân quyền
+        function denyAccess(featureName) {
+            alert(`🔒 [AN NINH PHÂN QUYỀN]\n\nTài khoản "Đầu Bếp" KHÔNG có quyền truy cập:\n➤ "${featureName}"\n\nVui lòng liên hệ Bếp Trưởng để được cấp quyền.`);
+        }
+    </script>
+</body>
+</html>

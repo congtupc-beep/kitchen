@@ -1,0 +1,155 @@
+# ==========================================
+
+# 1. Dependencies (Thư viện bên thứ ba)
+
+# ==========================================
+
+node_modules/
+
+jspm_packages/
+
+
+
+# ==========================================
+
+# 2. Environment Variables (Biến môi trường)
+
+# ==========================================
+
+# Chặn file chứa thông tin nhạy cảm (DB_PASS, v.v.)
+
+.env
+
+.env.local
+
+.env.development.local
+
+.env.test.local
+
+.env.production.local
+
+
+
+# ==========================================
+
+# 3. Uploads & Public Assets
+
+# ==========================================
+
+# Chặn thư mục lưu trữ ảnh/file upload từ người dùng
+
+public/uploads/
+
+
+
+# ==========================================
+
+# 4. Logs & Runtime Data (Log và tiến trình)
+
+# ==========================================
+
+logs/
+
+*.log
+
+npm-debug.log*
+
+yarn-debug.log*
+
+yarn-error.log*
+
+lerna-debug.log*
+
+.pids
+
+*.pid
+
+*.seed
+
+*.pid.lock
+
+
+
+# ==========================================
+
+# 5. Testing & Coverage (Kiểm thử)
+
+# ==========================================
+
+# Thư mục sinh ra khi chạy test coverage (Jest/Istanbul)
+
+coverage/
+
+.nyc_output/
+
+
+
+# ==========================================
+
+# 6. OS & Editor Files (File hệ thống & IDE)
+
+# ==========================================
+
+# macOS
+
+.DS_Store
+
+.AppleDouble
+
+.LSOverride
+
+
+
+# Windows
+
+Thumbs.db
+
+ehthumbs.db
+
+Desktop.ini
+
+$RECYCLE.BIN/
+
+
+
+# Linux
+
+*~
+
+.\#*
+
+
+
+# Visual Studio Code
+
+.vscode/
+
+
+
+# JetBrains (WebStorm, IntelliJ, etc.)
+
+.idea/
+
+*.iws
+
+*.iml
+
+*.ipr
+
+
+
+# ==========================================
+
+# 7. Misc (Khác)
+
+# ==========================================
+
+.cache/
+
+dist/
+node_modules
+
+#----------------------------------------------------------
+test-*.js
+test-login.json
+package-lock.json

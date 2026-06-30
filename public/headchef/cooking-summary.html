@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng hợp chế biến - Hệ Thống Nhà Bếp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/headchef.css">
+    
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="dashboard-layout-body">
+    <aside class="kds-sidebar">
+        <div>
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-utensils"></i>
+                <span>Món ngon mỗi ngày</span>
+            </div>
+            
+            <nav class="sidebar-menu-list">
+                <div class="menu-item-link" onclick="location.href='/headchef/dashboard.html'">
+                    <div class="link-main-content"><i class="fa-solid fa-chart-line"></i> Tổng quan</div>
+                </div>
+                
+                <div class="menu-item-link active">
+                    <div class="link-main-content"><i class="fa-solid fa-kitchen-set"></i> Quản lý hàng bếp</div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="sub-menu-container">
+                    <button class="btn-sub-badge" onclick="location.href='/headchef/order-list.html'">
+                        <i class="fa-solid fa-list"></i> Danh sách order
+                    </button>
+                    
+                    <div class="menu-divider" style="margin: 8px 0; border-top: 1px dashed rgba(255,255,255,0.2);"></div>
+                    
+                    <button class="btn-sub-badge active status-tab" data-status="WAITING" onclick="cookingSummaryManager.switchStatus('WAITING', this)">
+                        <i class="fa-solid fa-clock"></i> Đang chờ nấu
+                    </button>
+                    <button class="btn-sub-badge status-tab" data-status="COOKING" onclick="cookingSummaryManager.switchStatus('COOKING', this)">
+                        <i class="fa-solid fa-fire-burner"></i> Đang nấu
+                    </button>
+                    <button class="btn-sub-badge status-tab" data-status="DONE" onclick="cookingSummaryManager.switchStatus('DONE', this)">
+                        <i class="fa-solid fa-circle-check"></i> Hoàn thành
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </aside>
+
+    <div class="kds-main-wrapper">
+        <header class="kds-navbar">
+            <div class="navbar-left">
+                <h2><i class="fa-solid fa-fire-burner"></i> Tổng hợp chế biến</h2>
+            </div>
+            <div class="navbar-right">
+                <div class="user-profile-block" onclick="location.href='/shared/profile.html'">
+                    <img src="https://www.w3schools.com/howto/img_avatar.png" alt="Avatar" class="user-avatar">
+                    <div class="user-info-text">
+                        <span class="user-name" id="chefNameTxt">Đang tải...</span>
+                        <span class="user-role" id="chefRoleTxt">Head Chef</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="workspace-content">
+            <div class="cooking-summary-container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #e3f2fd; color: #1976d2;">
+                            <i class="fa-solid fa-clipboard-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="totalOrders">0</div>
+                            <div class="stat-label">Tổng đơn đang chờ</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fff3e0; color: #f57c00;">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="waitingOrders">0</div>
+                            <div class="stat-label">Sắp quá hạn (5-15p)</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #ffebee; color: #d32f2f;">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="overdueOrders">0</div>
+                            <div class="stat-label">Đã quá hạn (>15p)</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #e8f5e9; color: #388e3c;">
+                            <i class="fa-solid fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="newOrders">0</div>
+                            <div class="stat-label">Mới nhận (<5p)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cooking-summary-layout">
+                    <div class="dishes-section">
+                        <h3 class="section-title" id="sectionTitle">Danh sách món Đang chờ nấu</h3>
+                        <div class="dishes-grid" id="dishesGrid">
+                            </div>
+                    </div>
+
+                    <div class="task-detail-panel" id="taskDetailPanel" hidden>
+                        </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/assets/js/shared/api-client.js"></script>
+    <script src="/assets/js/shared/auth.js"></script>
+    <script src="/assets/js/shared/socket-client.js"></script>
+    <script src="/assets/js/shared/toast.js"></script>
+    <script src="/assets/js/headchef/cooking-summary.js"></script>
+    <script>
+        // Điều chỉnh link "Tổng quan" theo role sau khi DOM load
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('chef_user') || 'null');
+            if (user && user.role === 'CHEF') {
+                const overviewLink = document.querySelector('.menu-item-link[onclick*="dashboard"]');
+                if (overviewLink) overviewLink.setAttribute('onclick', "location.href='/chef/dashboard.html'");
+            }
+        });
+    </script>
+</body>
+</html>

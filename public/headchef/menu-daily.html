@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Thực Đơn Ngày - Hệ Thống Nhà Bếp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/headchef.css">
+    <style>
+        /* ============================================================
+           DAILY MENU PAGE - SPECIFIC STYLES
+           ============================================================ */
+        :root {
+            --success-green: #1a7f37;
+            --danger-red: #cf222e;
+            --primary-blue: #0969da;
+            --border-light: #e1e4e8;
+            --bg-gray: #f6f8fa;
+        }
+
+        /* --- Toolbar trên cùng --- */
+        .daily-menu-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            background: white;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .toolbar-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #475569;
+            white-space: nowrap;
+        }
+        .toolbar-date-input {
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 14px;
+            color: #1a1a1a;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .toolbar-date-input:focus { border-color: var(--primary-blue); }
+        .toolbar-spacer { flex: 1; }
+        .btn-toolbar {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-toolbar.primary {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+        .btn-toolbar.primary:hover { background: #0550ae; }
+        .btn-toolbar.success {
+            background: #1a7f37;
+            color: white;
+            border-color: #1a7f37;
+        }
+        .btn-toolbar.success:hover { background: #145e28; }
+        .btn-toolbar.secondary { background: var(--bg-gray); color: #1a1a1a; }
+        .btn-toolbar.secondary:hover { background: #eff3f8; }
+        .btn-toolbar.danger { background: var(--danger-red); color: white; border-color: var(--danger-red); }
+        .btn-toolbar.danger:hover { background: #a40e26; }
+
+        /* --- Grid 2 cột chính --- */
+        .daily-menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* --- Panel card chứa bảng --- */
+        .menu-panel {
+            background: white;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        .menu-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+            background: var(--bg-gray);
+        }
+        .menu-panel-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .menu-panel-title i { color: var(--primary-blue); }
+        .count-badge {
+            background: var(--primary-blue);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+
+        /* --- Thanh tìm kiếm và lọc ở cột phải --- */
+        .search-filter-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-light);
+            flex-wrap: wrap;
+        }
+        .search-filter-bar input[type="text"] {
+            flex: 1;
+            min-width: 120px;
+            border: 1px solid var(--border-light);
+            border-radius: 7px;
+            padding: 8px 12px;
+            font-size: 13px;
+            outline: none;
+        }
+        .search-filter-bar input:focus { border-color: var(--primary-blue); }
+        .search-filter-bar select {
+            border: 1px solid var(--border-light);
+            border-radius: 7px;
+            padding: 8px 10px;
+            font-size: 13px;
+            background: white;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* --- Bảng dữ liệu --- */
+        .menu-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .menu-table thead tr {
+            background: var(--bg-gray);
+        }
+        .menu-table th {
+            padding: 11px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 2px solid var(--border-light);
+            white-space: nowrap;
+        }
+        .menu-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f3f6;
+            vertical-align: middle;
+        }
+        .menu-table tbody tr:hover { background: #fafbfc; }
+        .menu-table .cell-checkbox { width: 36px; text-align: center; }
+        .menu-table .cell-stt { width: 40px; text-align: center; color: #94a3b8; }
+        .menu-table .cell-price { text-align: right; white-space: nowrap; font-weight: 600; color: var(--primary-blue); }
+
+        /* --- Badge trạng thái --- */
+        .badge-status {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-status.available { background: #dafbe1; color: var(--success-green); }
+        .badge-status.sold_out { background: #fff8c5; color: #9a6700; }
+        .badge-status.unavailable { background: #ffebe9; color: var(--danger-red); }
+
+        /* --- Nút thao tác trong ô --- */
+        .select-status-inline {
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            padding: 4px 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+        .btn-action-icon {
+            border: none;
+            border-radius: 6px;
+            padding: 5px 9px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .btn-action-icon.add { background: #dafbe1; color: var(--success-green); }
+        .btn-action-icon.add:hover { background: #b5f0c6; }
+        .btn-action-icon.delete { background: #ffebe9; color: var(--danger-red); }
+        .btn-action-icon.delete:hover { background: #ffd7d5; }
+
+        /* --- Phân trang --- */
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-light);
+            background: var(--bg-gray);
+        }
+        .pagination-controls {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        .btn-page {
+            border: 1px solid var(--border-light);
+            background: white;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 34px;
+            text-align: center;
+        }
+        .btn-page:hover:not(.disabled):not(.active) { background: var(--bg-gray); }
+        .btn-page.active { background: var(--primary-blue); color: white; border-color: var(--primary-blue); }
+        .btn-page.disabled { opacity: 0.4; cursor: not-allowed; }
+        .items-per-page-select {
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* --- Empty placeholder --- */
+        .empty-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 40px 20px;
+            color: #94a3b8;
+            font-size: 14px;
+            text-align: center;
+        }
+        .empty-placeholder i { font-size: 40px; }
+
+        /* --- Loading overlay --- */
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.75);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+        #loadingOverlay i { font-size: 36px; }
+
+        /* Responsive */
+        @media (max-width: 1000px) {
+            .daily-menu-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="dashboard-layout-body">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="kds-sidebar">
+        <div>
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-utensils"></i>
+                <span>Món ngon mỗi ngày</span>
+            </div>
+            <nav class="sidebar-menu-list">
+                <div class="menu-item-link" onclick="location.href='/headchef/dashboard.html'">
+                    <div class="link-main-content"><i class="fa-solid fa-chart-line"></i> Tổng quan</div>
+                </div>
+
+                <div class="menu-item-link active">
+                    <div class="link-main-content"><i class="fa-solid fa-list-check"></i> Quản lý thực đơn</div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="sub-menu-container">
+                    <button class="btn-sub-badge active" onclick="location.href='/headchef/menu-daily.html'">
+                        <i class="fa-solid fa-calendar-day"></i> Thực đơn hàng ngày
+                    </button>
+                </div>
+
+                <div class="menu-item-link">
+                    <div class="link-main-content"><i class="fa-solid fa-kitchen-set"></i> Quản lý hàng bếp</div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="sub-menu-container">
+                    <button class="btn-sub-badge" onclick="location.href='/headchef/order-list.html'">
+                        <i class="fa-solid fa-list"></i> Danh sách order
+                    </button>
+                    <button class="btn-sub-badge" onclick="location.href='/headchef/cooking-summary.html'">
+                        <i class="fa-solid fa-fire-burner"></i> Tổng hợp chế biến
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN WRAPPER ===== -->
+    <div class="kds-main-wrapper">
+        <!-- Navbar -->
+        <header class="kds-navbar">
+            <div class="navbar-left">
+                <h2><i class="fa-solid fa-calendar-day"></i> Quản Lý Thực Đơn Ngày</h2>
+            </div>
+            <div class="navbar-right">
+                <div class="user-profile-block" onclick="location.href='/shared/profile.html'">
+                    <img src="https://www.w3schools.com/howto/img_avatar.png" alt="Avatar" class="user-avatar">
+                    <div class="user-info-text">
+                        <span class="user-name" id="chefNameTxt">Đang tải...</span>
+                        <span class="user-role" id="chefRoleTxt">Head Chef</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Workspace -->
+        <main class="workspace-content">
+
+            <!-- Toolbar chọn ngày + nút hành động -->
+            <div class="daily-menu-toolbar">
+                <span class="toolbar-label"><i class="fa-solid fa-calendar"></i> Ngày áp dụng:</span>
+                <input type="date" id="menuDate" class="toolbar-date-input">
+                <button id="btnUseMasterMenu" class="btn-toolbar primary">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Thêm toàn bộ đang lọc
+                </button>
+                <button id="btnResetToLastSaved" class="btn-toolbar secondary">
+                    <i class="fa-solid fa-rotate-left"></i> Thiết lập lại
+                </button>
+                <div class="toolbar-spacer"></div>
+                <button id="btnCancelMenu" class="btn-toolbar secondary">
+                    <i class="fa-solid fa-xmark"></i> Hủy thay đổi
+                </button>
+                <button id="btnSaveMenu" class="btn-toolbar success">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu thực đơn
+                </button>
+            </div>
+
+            <!-- Grid 2 cột: Thực đơn ngày (trái) | Thực đơn gốc (phải) -->
+            <div class="daily-menu-grid">
+
+                <!-- ====== CỘT TRÁI: Thực đơn ngày hôm nay ====== -->
+                <div class="menu-panel">
+                    <div class="menu-panel-header">
+                        <div class="menu-panel-title">
+                            <i class="fa-solid fa-star"></i>
+                            Thực đơn hôm nay
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span class="count-badge" id="dailyCountBadge">0 món</span>
+                            <label style="font-size:12px; color:#475569; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                                <input type="checkbox" id="selectAllDailyCheck"> Chọn tất cả
+                            </label>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table class="menu-table">
+                            <thead>
+                                <tr>
+                                    <th class="cell-checkbox"></th>
+                                    <th class="cell-stt">#</th>
+                                    <th>Tên món</th>
+                                    <th>Danh mục</th>
+                                    <th class="cell-price">Giá</th>
+                                    <th>Trạng thái</th>
+                                    <th style="text-align:center;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dailyMenuTableBody">
+                                <tr>
+                                    <td colspan="7">
+                                        <div class="empty-placeholder">
+                                            <i class="fa-solid fa-cookie-bite"></i>
+                                            Chưa có món ăn nào. Hãy thêm từ cột bên phải!
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ====== CỘT PHẢI: Thực đơn gốc (Master Menu) ====== -->
+                <div class="menu-panel">
+                    <div class="menu-panel-header">
+                        <div class="menu-panel-title">
+                            <i class="fa-solid fa-book-open"></i>
+                            Thực đơn gốc
+                        </div>
+                        <span class="count-badge" id="masterCountBadge">0 món</span>
+                    </div>
+
+                    <!-- Thanh tìm kiếm & lọc danh mục -->
+                    <div class="search-filter-bar">
+                        <i class="fa-solid fa-magnifying-glass" style="color:#94a3b8;"></i>
+                        <input type="text" id="searchDishInput" placeholder="Tìm theo tên món...">
+                        <select id="filterCategorySelect">
+                            <option value="">Tất cả danh mục</option>
+                            <option value="Món Khai Vị">Món Khai Vị</option>
+                            <option value="Món Chính">Món Chính</option>
+                            <option value="Canh Và Lẩu">Canh Và Lẩu</option>
+                            <option value="Tráng Miệng Và Nước">Tráng Miệng Và Nước</option>
+                        </select>
+                    </div>
+
+                    <div style="overflow-x:auto;">
+                        <table class="menu-table">
+                            <thead>
+                                <tr>
+                                    <th class="cell-stt">#</th>
+                                    <th>Tên món</th>
+                                    <th>Danh mục</th>
+                                    <th class="cell-price">Giá</th>
+                                    <th style="text-align:center;">Thêm vào</th>
+                                </tr>
+                            </thead>
+                            <tbody id="masterMenuTableBody">
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty-placeholder">
+                                            <i class="fa-solid fa-spinner fa-spin"></i>
+                                            Đang tải danh sách món ăn...
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Thanh phân trang -->
+                    <div class="pagination-bar">
+                        <div style="display:flex; align-items:center; gap:8px; font-size:12px; color:#475569;">
+                            Hiển thị:
+                            <select class="items-per-page-select" id="itemsPerPageSelect">
+                                <option value="5" selected>5 món/trang</option>
+                                <option value="10">10 món/trang</option>
+                                <option value="20">20 món/trang</option>
+                                <option value="50">50 món/trang</option>
+                            </select>
+                        </div>
+                        <div class="pagination-controls" id="paginationContainer"></div>
+                    </div>
+                </div>
+
+            </div><!-- end .daily-menu-grid -->
+
+        </main>
+    </div>
+
+    <!-- Loading overlay toàn trang -->
+    <div id="loadingOverlay">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Đang xử lý dữ liệu...
+    </div>
+
+    <!-- Scripts - Thứ tự quan trọng -->
+    <script src="/assets/js/shared/api-client.js"></script>
+    <script src="/assets/js/shared/auth.js"></script>
+    <script src="/assets/js/shared/toast.js"></script>
+    <script src="/headchef/dailyMenu.js"></script>
+</body>
+</html>
