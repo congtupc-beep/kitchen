@@ -38,7 +38,6 @@ jspm_packages/
 
 # Chặn thư mục lưu trữ ảnh/file upload từ người dùng
 
-public/uploads/
 
 
 

@@ -243,7 +243,7 @@
                 <i class="fa-solid fa-fire-burner"></i> Tình trạng bếp
             </div>
             <div class="dash-stats-grid">
-                <div class="dash-stat-card" onclick="location.href='/headchef/cooking-summary.html'">
+                <div class="dash-stat-card" onclick="location.href='/headchef/cooking-summary.html?status=WAITING'">
                     <div class="dash-stat-icon" style="background:#fff3e0;color:#f57c00;">
                         <i class="fa-solid fa-clock"></i>
                     </div>
@@ -252,7 +252,7 @@
                         <div class="dash-stat-lbl">Đang chờ nấu</div>
                     </div>
                 </div>
-                <div class="dash-stat-card" onclick="location.href='/headchef/cooking-summary.html'">
+                <div class="dash-stat-card" onclick="location.href='/headchef/cooking-summary.html?status=COOKING'">
                     <div class="dash-stat-icon" style="background:#e3f2fd;color:#1976d2;">
                         <i class="fa-solid fa-fire"></i>
                     </div>
@@ -261,7 +261,7 @@
                         <div class="dash-stat-lbl">Đang nấu</div>
                     </div>
                 </div>
-                <div class="dash-stat-card" onclick="location.href='/headchef/cooking-summary.html'">
+                <div class="dash-stat-card" onclick="location.href='/headchef/cooking-summary.html?status=DONE'">
                     <div class="dash-stat-icon" style="background:#e8f5e9;color:#2e7d32;">
                         <i class="fa-solid fa-circle-check"></i>
                     </div>
@@ -270,7 +270,7 @@
                         <div class="dash-stat-lbl">Đã hoàn thành</div>
                     </div>
                 </div>
-                <div class="dash-stat-card urgent-card" id="overdueCard">
+                <div class="dash-stat-card urgent-card" id="overdueCard" onclick="location.href='/headchef/cooking-summary.html?status=WAITING&filter=overdue'">
                     <div class="dash-stat-icon" style="background:#ffebe9;color:#cf222e;">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>

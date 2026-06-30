@@ -26,6 +26,11 @@ router.get('/recent',
     orderController.getRecentOrders
 );
 
+// GET /api/orders/stats - Thống kê đơn hàng
+router.get('/stats',
+    orderController.getOrderStats
+);
+
 // GET /api/orders/:id - Chi tiết đơn
 router.get('/:id',
     validate(orderValidation.orderIdParam.params, 'params'), 

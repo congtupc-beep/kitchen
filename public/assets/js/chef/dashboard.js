@@ -29,7 +29,7 @@ class ChefDashboard {
         try {
             const chefId = this.chef.chef_id;
             const [waitingRes, cookingRes, doneRes] = await Promise.all([
-                window.apiClient.get(`/kitchen/tasks?chef_id=${chefId}&status=WAITING`),
+                window.apiClient.get(`/kitchen/tasks?status=WAITING`),
                 window.apiClient.get(`/kitchen/tasks?chef_id=${chefId}&status=COOKING`),
                 window.apiClient.get(`/kitchen/tasks?chef_id=${chefId}&status=DONE`)
             ]);

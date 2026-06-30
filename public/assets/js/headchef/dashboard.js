@@ -63,17 +63,17 @@ class HeadChefDashboard {
 
     async loadRecentOrders() {
         try {
+            // Lấy thống kê đơn hàng thực tế từ API mới
+            const statsRes = await window.apiClient.get('/orders/stats');
+            const stats = statsRes.data || { PENDING: 0, PROCESSING: 0, DONE: 0 };
+
+            this.setEl('orderStatPending', stats.PENDING);
+            this.setEl('orderStatProcessing', stats.PROCESSING);
+            this.setEl('orderStatDone', stats.DONE);
+
+            // Vẫn lấy danh sách 15 đơn hàng gần nhất để hiển thị ở bảng bên dưới
             const res = await window.apiClient.get('/orders/recent?limit=15');
             const orders = res.data || [];
-
-            const pending = orders.filter(o => o.status === 'PENDING').length;
-            const processing = orders.filter(o => o.status === 'PROCESSING').length;
-            const done = orders.filter(o => o.status === 'DONE').length;
-
-            this.setEl('orderStatPending', pending);
-            this.setEl('orderStatProcessing', processing);
-            this.setEl('orderStatDone', done);
-
             this.renderRecentOrders(orders);
         } catch (err) {
             console.error('[HeadChef Dashboard] loadRecentOrders error:', err.message);

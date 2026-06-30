@@ -784,6 +784,39 @@ html, body {
     align-items: center;
     gap: 15px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 2px solid transparent;
+    user-select: none;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+}
+
+.stat-card.active-filter {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.stat-card.active-filter[data-filter="total"] {
+    border-color: #1976d2;
+    background-color: #f0f7ff;
+}
+
+.stat-card.active-filter[data-filter="warning"] {
+    border-color: #f57c00;
+    background-color: #fff9f2;
+}
+
+.stat-card.active-filter[data-filter="overdue"] {
+    border-color: #d32f2f;
+    background-color: #fff5f5;
+}
+
+.stat-card.active-filter[data-filter="new"] {
+    border-color: #388e3c;
+    background-color: #f4fbf5;
 }
 
 .stat-icon {

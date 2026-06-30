@@ -27,6 +27,13 @@ class OrderController {
         } catch (error) { next(error); }
     }
 
+    async getOrderStats(req, res, next) {
+        try {
+            const stats = await orderService.getOrderStats();
+            return responseBuilder.success(res, stats, 'Tải thống kê đơn hàng thành công.');
+        } catch (error) { next(error); }
+    }
+
     async getOrderById(req, res, next) {
         try {
             const orderId = req.params.id;

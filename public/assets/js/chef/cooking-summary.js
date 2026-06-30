@@ -2,11 +2,36 @@ class CookingSummaryManager {
     constructor() {
         this.tasks = [];
         this.currentStatus = 'WAITING'; // Mặc định ban đầu hiển thị danh sách chờ nấu
+        this.activeCardFilter = null;   // Lưu trữ bộ lọc từ thẻ số liệu được click
         this.timerInterval = null;
         this.init();
     }
 
     async init() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const statusParam = urlParams.get('status');
+        const filterParam = urlParams.get('filter');
+
+        if (statusParam) {
+            this.currentStatus = statusParam;
+        }
+        if (filterParam) {
+            this.activeCardFilter = filterParam;
+            
+            const applyInitialFilterClass = () => {
+                const card = document.querySelector(`.stat-card[data-filter="${this.activeCardFilter}"]`);
+                if (card) {
+                    card.classList.add('active-filter');
+                }
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', applyInitialFilterClass);
+            } else {
+                applyInitialFilterClass();
+            }
+        }
+
+        this.updateTabState();
         await this.loadTasks();
         this.setupSocketListeners();
         this.setupRealtimeClock();
@@ -105,13 +130,67 @@ class CookingSummaryManager {
             'COOKING': 'Danh sách món Đang nấu',
             'DONE': 'Danh sách món Đã hoàn thành'
         };
-        document.getElementById('sectionTitle').textContent = titleMap[this.currentStatus] || 'Danh sách tác vụ';
+        
+        let title = titleMap[this.currentStatus] || 'Danh sách tác vụ';
+        if (this.activeCardFilter) {
+            const filterNames = {
+                'total': ' (Tất cả)',
+                'warning': ' (Sắp quá hạn 5-15p)',
+                'overdue': ' (Đã quá hạn >15p)',
+                'new': ' (Mới nhận <5p)'
+            };
+            title += filterNames[this.activeCardFilter] || '';
+        }
+        document.getElementById('sectionTitle').textContent = title;
     }
 
     async switchStatus(status, element) {
         this.currentStatus = status;
+        this.activeCardFilter = null; // Reset bộ lọc thẻ khi chuyển trạng thái tab chính
+        document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active-filter'));
         this.updateTabState();
         await this.loadTasks();
+    }
+
+    toggleCardFilter(filterType, element) {
+        if (this.activeCardFilter === filterType) {
+            this.activeCardFilter = null;
+        } else {
+            this.activeCardFilter = filterType;
+        }
+
+        // Cập nhật class active-filter cho các thẻ số liệu
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.classList.remove('active-filter');
+        });
+
+        if (this.activeCardFilter) {
+            element.classList.add('active-filter');
+        }
+
+        this.updateTabState();
+        this.renderDishes();
+    }
+
+    matchesFilter(task, filterType) {
+        if (!filterType || filterType === 'total') return true;
+        const minutes = this.getTaskMinutes(task);
+        if (filterType === 'overdue') {
+            return (task.status === 'WAITING' || task.status === 'COOKING') && minutes > 15;
+        }
+        if (filterType === 'warning') {
+            if (task.status === 'WAITING') {
+                return minutes > 5 && minutes <= 15;
+            }
+            if (task.status === 'COOKING') {
+                return minutes <= 15;
+            }
+            return false;
+        }
+        if (filterType === 'new') {
+            return task.status === 'WAITING' && minutes <= 5;
+        }
+        return true;
     }
 
     async loadTasks() {
@@ -160,23 +239,56 @@ class CookingSummaryManager {
         document.getElementById('waitingOrders').textContent = waiting;
         document.getElementById('overdueOrders').textContent = overdue;
         document.getElementById('newOrders').textContent = newOrders;
+
+        // Cập nhật nhãn của thẻ đầu tiên dựa trên trạng thái hiện tại
+        const labelMap = {
+            'WAITING': 'Tổng món đang chờ',
+            'COOKING': 'Tổng món đang nấu',
+            'DONE': 'Tổng món đã hoàn thành'
+        };
+        const totalLabelEl = document.querySelector('.stat-card[data-filter="total"] .stat-label');
+        if (totalLabelEl) {
+            totalLabelEl.textContent = labelMap[this.currentStatus] || 'Tổng tác vụ';
+        }
+
+        // Ẩn/Hiện các thẻ thống kê không liên quan theo từng tab trạng thái
+        const cardWarning = document.querySelector('.stat-card[data-filter="warning"]');
+        const cardOverdue = document.querySelector('.stat-card[data-filter="overdue"]');
+        const cardNew = document.querySelector('.stat-card[data-filter="new"]');
+
+        if (this.currentStatus === 'DONE') {
+            if (cardWarning) cardWarning.style.display = 'none';
+            if (cardOverdue) cardOverdue.style.display = 'none';
+            if (cardNew) cardNew.style.display = 'none';
+        } else if (this.currentStatus === 'COOKING') {
+            if (cardWarning) cardWarning.style.display = 'flex';
+            if (cardOverdue) cardOverdue.style.display = 'flex';
+            if (cardNew) cardNew.style.display = 'none';
+        } else {
+            if (cardWarning) cardWarning.style.display = 'flex';
+            if (cardOverdue) cardOverdue.style.display = 'flex';
+            if (cardNew) cardNew.style.display = 'flex';
+        }
     }
 
     renderDishes() {
         const container = document.getElementById('dishesGrid');
 
-        if (this.tasks.length === 0) {
+        // Lọc tasks theo bộ lọc từ thẻ số liệu được click
+        const filteredTasks = this.tasks.filter(task => this.matchesFilter(task, this.activeCardFilter));
+
+        if (filteredTasks.length === 0) {
             container.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
                     <i class="fa-solid fa-utensils"></i>
-                    <h3>Không có món nào trong danh sách này</h3>
-                    <p>Các món có trạng thái [${this.currentStatus}] hiện đang trống.</p>
+                    <h3>Không có món nào khớp với bộ lọc này</h3>
+                    <p>Danh sách hiển thị hiện đang trống.</p>
                 </div>
             `;
             return;
         }
 
-        container.innerHTML = this.tasks.map(task => {
+        container.innerHTML = filteredTasks.map(task => {
             const minutes = this.getTaskMinutes(task);
             let timeBadge = '';
             let timeClass = '';

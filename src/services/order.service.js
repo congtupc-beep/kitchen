@@ -357,6 +357,25 @@ class OrderService {
         }
     }
 
+    async getOrderStats() {
+        const pool = await poolPromise;
+        const result = await pool.request().query(`
+            SELECT status, COUNT(*) as count 
+            FROM [dbo].[orders] 
+            GROUP BY status
+        `);
+        const stats = { PENDING: 0, PROCESSING: 0, DONE: 0, CANCELLED: 0 };
+        result.recordset.forEach(row => {
+            if (row.status) {
+                const statusUpper = row.status.toUpperCase();
+                if (stats[statusUpper] !== undefined) {
+                    stats[statusUpper] = row.count;
+                }
+            }
+        });
+        return stats;
+    }
+
 
 async getRecentOrders(limit = 50) {
     console.log('🔵 [getRecentOrders] Bắt đầu lấy danh sách orders...');
